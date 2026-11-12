@@ -12,6 +12,7 @@ import { ChatMessage, AgentTraceStep, ReminderItem } from './types';
 import { api } from './services/api';
 import { getTranslation } from './i18n';
 import { Sprout, ShieldCheck, HeartHandshake, Send, Volume2, CloudSun, TrendingUp, Calendar, PhoneCall, Sparkles } from 'lucide-react';
+import { createPlayableAudioUrl, safePlayAudio } from './utils/audio';
 
 const WELCOME_GREETINGS: Record<string, string> = {
   te: 'నమస్కారం రైతు సోదరా! నేను RYTHUM AI — మీ డిజిటల్ వ్యవసాయ సహాయకుడిని 🙏\n\nమీ పంట సమస్యలు, నేటి మార్కెట్ ధరలు, వాతావరణం లేదా పనుల రిమైండర్ల గురించి మైక్ నొక్కి మాట్లాడండి లేదా ఇక్కడ టైప్ చేయండి.',
@@ -95,9 +96,18 @@ export function App() {
     const nextBase64 = audioQueueRef.current.shift()!;
     try {
       if (globalAudioRef.current) {
-        globalAudioRef.current.pause();
+        globalAudioRef.current.onended = null;
+        globalAudioRef.current.onerror = null;
+        try {
+          globalAudioRef.current.pause();
+          globalAudioRef.current.currentTime = 0;
+        } catch (e) {}
       }
-      const audioUrl = `data:audio/wav;base64,${nextBase64}`;
+      const audioUrl = createPlayableAudioUrl(nextBase64);
+      if (!audioUrl) {
+        playNextInQueue();
+        return;
+      }
       const audio = new Audio(audioUrl);
       globalAudioRef.current = audio;
       audio.onended = () => {
@@ -106,12 +116,9 @@ export function App() {
       audio.onerror = () => {
         playNextInQueue();
       };
-      audio.play().catch((e) => {
-        console.warn('Playback error:', e);
-        playNextInQueue();
-      });
+      safePlayAudio(audio);
     } catch (e) {
-      console.error(e);
+      console.error('Queue playback error:', e);
       playNextInQueue();
     }
   };

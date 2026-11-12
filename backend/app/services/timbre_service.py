@@ -5,6 +5,8 @@ import base64
 import math
 import struct
 import logging
+import io
+import wave
 import httpx
 from typing import Dict, Any, Optional
 from backend.app.core.config import settings
@@ -104,9 +106,14 @@ class GnaniTimbreTTSService:
                     content_type = response.headers.get("content-type", "")
                     if "application/json" in content_type:
                         resp_json = response.json()
-                        audio_base64 = resp_json.get("audio") or resp_json.get("audio_content", "")
+                        raw_b64 = resp_json.get("audio") or resp_json.get("audio_content", "")
+                        raw_bytes = base64.b64decode(raw_b64) if raw_b64 else b""
                     else:
-                        audio_base64 = base64.b64encode(response.content).decode("utf-8")
+                        raw_bytes = response.content
+
+                    # Wrap headerless raw PCM bytes in standard 24kHz 16-bit Mono RIFF WAV container
+                    wav_bytes = self._ensure_wav_header(raw_bytes, sample_rate=24000)
+                    audio_base64 = base64.b64encode(wav_bytes).decode("utf-8")
 
                     return {
                         "success": True,
@@ -145,6 +152,25 @@ class GnaniTimbreTTSService:
             "text": text,
             "provider": f"Gnani Timbre ({self.model} - Emulation Mode)"
         }
+
+    @staticmethod
+    def _ensure_wav_header(audio_bytes: bytes, sample_rate: int = 24000, channels: int = 1, sampwidth: int = 2) -> bytes:
+        """
+        Wraps headerless raw PCM bytes from Gnani Timbre into standard RIFF WAV format.
+        If already a valid WAV file (starts with 'RIFF'), returns as is.
+        """
+        if not audio_bytes:
+            return b""
+        if audio_bytes.startswith(b"RIFF") and len(audio_bytes) > 44 and b"WAVE" in audio_bytes[:16]:
+            return audio_bytes
+
+        buf = io.BytesIO()
+        with wave.open(buf, "wb") as wf:
+            wf.setnchannels(channels)
+            wf.setsampwidth(sampwidth)
+            wf.setframerate(sample_rate)
+            wf.writeframes(audio_bytes)
+        return buf.getvalue()
 
     def _generate_pleasant_audio(self, num_samples: int, sample_rate: int = 16000) -> bytes:
         """

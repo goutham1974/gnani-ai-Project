@@ -3,6 +3,7 @@ import { ChatMessage, AgentTraceStep } from '../types';
 import { Volume2, VolumeX, Sparkles, ShieldCheck, ChevronRight, User, Bot, Clock, Loader2 } from 'lucide-react';
 import { getTranslation } from '../i18n';
 import { api } from '../services/api';
+import { createPlayableAudioUrl, safePlayAudio } from '../utils/audio';
 
 interface ChatFeedProps {
   messages: ChatMessage[];
@@ -24,8 +25,12 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
 
   const stopCurrentAudio = () => {
     if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
+      audioRef.current.onended = null;
+      audioRef.current.onerror = null;
+      try {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      } catch (e) {}
     }
     setPlayingAudioId(null);
   };
@@ -33,22 +38,22 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
   const playBase64Audio = (id: string, base64Audio: string) => {
     stopCurrentAudio();
     try {
-      const audioUrl = `data:audio/wav;base64,${base64Audio}`;
+      const audioUrl = createPlayableAudioUrl(base64Audio);
+      if (!audioUrl) return;
       const audio = new Audio(audioUrl);
       audioRef.current = audio;
 
       audio.onended = () => {
         setPlayingAudioId(null);
       };
-
-      audio.play().then(() => {
-        setPlayingAudioId(id);
-      }).catch(err => {
-        console.warn("Audio playback issue:", err);
+      audio.onerror = () => {
         setPlayingAudioId(null);
-      });
+      };
+
+      setPlayingAudioId(id);
+      safePlayAudio(audio);
     } catch (e) {
-      console.error(e);
+      console.error('Audio playback error:', e);
       setPlayingAudioId(null);
     }
   };
