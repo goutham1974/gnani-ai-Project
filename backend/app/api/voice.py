@@ -72,7 +72,7 @@ async def voice_interaction_pipeline(
         language_code=preferred_language,
         hint_text=hint_text
     )
-    user_transcript = stt_res.get("transcript", "")
+    user_transcript = (hint_text or "").strip() or stt_res.get("transcript", "").strip() or "రైతు వ్యవసాయ సలహా"
     stt_latency = stt_res.get("latency_ms", 0.0)
 
     # Step 2: LangGraph Autonomous Multi-Agent Reasoning

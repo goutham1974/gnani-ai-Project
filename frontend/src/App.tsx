@@ -157,20 +157,22 @@ export function App() {
     const userMsgId = 'user_' + Date.now();
     const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-    try {
-      const res = await api.sendVoiceQuery(audioBlob, selectedLanguage, undefined, liveTranscript);
-      const recognizedText = res.query || liveTranscript || t.farmerVoiceLabel;
-      
-      // Update text input box with the recognized voice text
-      setTextInput(recognizedText);
+    const recognizedText = (liveTranscript || textInput || '').trim() || t.farmerVoiceLabel;
+    setTextInput(recognizedText);
 
-      const farmerMsg: ChatMessage = {
-        id: userMsgId,
-        sender: 'farmer',
-        text: recognizedText,
-        detected_language: res.detected_language || selectedLanguage,
-        timestamp: timeStr,
-      };
+    const farmerMsg: ChatMessage = {
+      id: userMsgId,
+      sender: 'farmer',
+      text: recognizedText,
+      detected_language: selectedLanguage,
+      timestamp: timeStr,
+    };
+
+    // Show farmer message bubble immediately in chat
+    setMessages((prev) => [...prev, farmerMsg]);
+
+    try {
+      const res = await api.sendVoiceQuery(audioBlob, selectedLanguage, undefined, recognizedText);
 
       const aiMsg: ChatMessage = {
         id: 'ai_' + Date.now(),
@@ -192,7 +194,7 @@ export function App() {
         }
       }
 
-      setMessages((prev) => [...prev, farmerMsg, aiMsg]);
+      setMessages((prev) => [...prev, aiMsg]);
       loadReminders();
     } catch (err) {
       console.error('Voice interaction error:', err);

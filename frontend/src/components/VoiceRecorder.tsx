@@ -31,6 +31,7 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<any>(null);
+  const silenceTimerRef = useRef<any>(null);
   const recognitionRef = useRef<any>(null);
   const liveTranscriptRef = useRef<string>('');
 
@@ -39,6 +40,7 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   useEffect(() => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
       if (recognitionRef.current) {
         try {
           recognitionRef.current.stop();
@@ -97,7 +99,26 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
             if (onLiveSpeech) {
               onLiveSpeech(interim);
             }
+
+            // Auto-submit after 2.2 seconds of silence after speaking
+            if (silenceTimerRef.current) {
+              clearTimeout(silenceTimerRef.current);
+            }
+            silenceTimerRef.current = setTimeout(() => {
+              if (liveTranscriptRef.current && liveTranscriptRef.current.trim().length > 2) {
+                stopRecording();
+              }
+            }, 2200);
           }
+        };
+
+        recognition.onspeechend = () => {
+          if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+          silenceTimerRef.current = setTimeout(() => {
+            if (liveTranscriptRef.current && liveTranscriptRef.current.trim().length > 2) {
+              stopRecording();
+            }
+          }, 1600);
         };
 
         recognition.onerror = (err: any) => {
@@ -131,6 +152,7 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
 
   const stopRecording = () => {
     if (timerRef.current) clearInterval(timerRef.current);
+    if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
     setIsRecording(false);
 
     if (recognitionRef.current) {

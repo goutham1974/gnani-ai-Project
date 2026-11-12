@@ -25,7 +25,7 @@ class LLMService:
     def __init__(self):
         self.provider = settings.LLM_PROVIDER
         self.gemini_key = settings.GEMINI_API_KEY.strip() if settings.GEMINI_API_KEY else ""
-        self.gemini_model = settings.GEMINI_MODEL or "gemini-2.0-flash"
+        self.gemini_model = settings.GEMINI_MODEL or "gemini-3.1-flash-lite"
         self.openai_key = settings.OPENAI_API_KEY.strip() if settings.OPENAI_API_KEY else ""
         self.groq_key = settings.GROQ_API_KEY.strip() if settings.GROQ_API_KEY else ""
 
@@ -43,14 +43,27 @@ class LLMService:
 
         # 1. Try Gemini API
         if self.gemini_key and not self.gemini_key.startswith("your_"):
-            models_to_try = [self.gemini_model, "gemini-3-flash-preview", "gemini-3.1-flash-lite"]
+            # Prioritized list of active working models on Google AI Studio
+            models_to_try = [
+                self.gemini_model,
+                "gemini-3.1-flash-lite",
+                "gemini-3.5-flash",
+                "gemini-3.6-flash",
+                "gemini-3.8-flash",
+                "gemma-4-26b-a4b-it",
+                "gemini-3-flash-preview"
+            ]
+            # Remove duplicates preserving order
+            seen = set()
+            models_to_try = [m for m in models_to_try if not (m in seen or seen.add(m))]
+
             sys_prompt = (
                 system_instruction or 
                 f"You are RYTHUM AI, an intelligent multilingual agricultural operating system assistant for Indian farmers. "
                 f"You MUST respond ONLY in {lang_name} using its native script (or friendly code-mixed if the user uses code-mixing). "
-                f"Keep your answers practical, compassionate, and precise for Indian agriculture. "
-                f"For greetings (like 'hi', 'how are you', 'who are you'), reply cordially in {lang_name}, introduce yourself as RYTHUM AI, "
-                f"and ask how you can help their farm with crops, mandi prices, weather, or reminders."
+                f"Directly and thoroughly answer any question the farmer asks — including crop diseases, pest remedies, fertilizers, water management, sowing, harvesting, soil health, weather, mandi market prices, and government schemes. "
+                f"Give practical, evidence-based, compassionate guidance with actionable dosages (e.g. ml or grams per liter of water) and steps. "
+                f"Only if the user's message is strictly a pure greeting (like 'hi' or 'hello' with no question), reply cordially and introduce yourself as RYTHUM AI."
             )
 
             payload = {
@@ -59,7 +72,7 @@ class LLMService:
                 "generationConfig": {"temperature": temperature, "maxOutputTokens": 800}
             }
 
-            with httpx.Client(timeout=10.0) as client:
+            with httpx.Client(timeout=20.0) as client:
                 for model_name in models_to_try:
                     try:
                         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={self.gemini_key}"
@@ -70,12 +83,14 @@ class LLMService:
                             if candidates:
                                 content_parts = candidates[0].get("content", {}).get("parts", [])
                                 if content_parts:
-                                    return {
-                                        "success": True,
-                                        "text": content_parts[0].get("text", "").strip(),
-                                        "model": f"Google Gemini ({model_name})",
-                                        "language": target_language
-                                    }
+                                    text_out = content_parts[0].get("text", "").strip()
+                                    if text_out:
+                                        return {
+                                            "success": True,
+                                            "text": text_out,
+                                            "model": f"Google Gemini ({model_name})",
+                                            "language": target_language
+                                        }
                         else:
                             logger.warning(f"Gemini {model_name} returned status {resp.status_code}: {resp.text[:120]}")
                     except Exception as e:
@@ -98,18 +113,18 @@ class LLMService:
 
     def _multilingual_fallback(self, prompt: str, lang: str) -> Dict[str, Any]:
         p_lower = prompt.lower().strip()
+        words = p_lower.split()
 
-        # Greetings & General Chit-chat
-        is_greeting = any(w in p_lower for w in [
-            "hi", "hello", "hey", "how are you", "who are you", "what can you do", "help",
-            "నమస్కారం", "ఎలా ఉన్నారు", "బాగున్నారా", "ఎవరు మీరు", "హాయ్",
-            "नमस्ते", "आप कैसे हैं", "कौन हो", "मदद",
-            "ನಮಸ್ಕಾರ", "ಹೇಗಿದ್ದೀರಾ", "ನೀವು ಯಾರು",
-            "வணக்கம்", "எப்படி இருக்கிறீர்கள்", "யார் நீங்கள்",
-            "नमस्कार", "कसे आहात", "तुम्ही कोण आहात"
+        has_question_word = any(q in p_lower for q in [
+            "what", "how", "why", "when", "where", "can", "should", "spray", "remedy", "fertilizer", "pest", "leaf", "disease",
+            "ఎలా", "ఏమిటి", "ఎందుకు", "ఎప్పుడు", "ఎక్కడ", "నివారణ", "మందులు", "ఎరువు", "పంట", "తెగులు", "ధర", "రేటు",
+            "कैसे", "क्या", "कब", "क्यों", "उपाय", "दवा", "खाद", "रोग", "भाव", "दाम"
+        ])
+        is_pure_greeting = len(words) <= 3 and not has_question_word and any(w in p_lower for w in [
+            "hi", "hello", "hey", "namaste", "namaskar", "vanakkam", "నమస్కారం", "బాగున్నారా", "హాయ్", "नमस्ते", "नमस्कार", "ನಮಸ್ಕಾರ"
         ])
 
-        if is_greeting:
+        if is_pure_greeting:
             responses = {
                 "te": (
                     "నమస్కారం రైతు సోదరా! నేను చాలా బాగున్నాను, ధన్యవాదాలు 🙏\n\n"
@@ -179,19 +194,30 @@ class LLMService:
                 "language": lang
             }
 
-        # General Agriculture Fallback
-        gen_responses = {
-            "te": f"రైతు సోదరా, మీ ప్రశ్న: '{prompt}'. శాస్త్రీయ పద్ధతుల ప్రకారం, సరైన పోషకాలు మరియు తేమ యాజమాన్యం పాటించడం ద్వారా పంట దిగుబడిని పెంచుకోవచ్చు. మీ పంట పేరు మరియు లక్షణాలను తెలియజేస్తే ఖచ్చితమైన పరిష్కారాన్ని అందించగలను.",
-            "hi": f"किसान भाई, आपका प्रश्न: '{prompt}'. वैज्ञानिक पद्धतियों के अनुसार, संतुलित पोषण और समय पर सिंचाई से फसल की पैदावार अच्छी होती है। कृपया अपनी फसल का नाम बताएं ताकि सटीक सलाह दी जा सके।",
-            "kn": f"ರೈತ ಮಿತ್ರರೇ, ನಿಮ್ಮ ಪ್ರಶ್ನೆ: '{prompt}'. ವೈಜ್ಞಾನಿಕ ಪದ್ಧತಿಗಳ ಪ್ರಕಾರ, ಸಮತೋಲಿತ ಪೋಷಕಾಂಶ ಮತ್ತು ಸಮಯೋಚಿತ ನೀರಾವರಿಯಿಂದ ಉತ್ತಮ ಇಳುವರಿ ಪಡೆಯಬಹುದು. ದಯವಿಟ್ಟು ನಿಖರವಾದ ಸಲಹೆಗಾಗಿ ಬೆಳೆಯ ಹೆಸರನ್ನು ತಿಳಿಸಿ.",
-            "ta": f"விவசாய தோழரே, உங்கள் கேள்வி: '{prompt}'. அறிவியல் முறைகளின்படி, சீரான உரம் மற்றும் சரியான பாசனம் மூலம் நல்ல மகசூல் பெறலாம். துல்லியமான ஆலோசனைக்கு பயிரின் பெயரை குறிப்பிடவும்.",
-            "mr": f"शेतकरी बंधू, आपला प्रश्न: '{prompt}'. वैज्ञानिक पद्धतीनुसार, संतुलित खत आणि योग्य पाण्याच्या व्यवस्थापनाने पीक उत्पादन वाढते. अचूक सल्ल्यासाठी कृपया पिकाचे नाव सांगा.",
-            "en": f"Farmer friend, regarding: '{prompt}'. Following scientific nutrient management and proper irrigation ensures healthy yield. Please specify your crop name for verified advice."
-        }
+        # Targeted Agricultural Intelligence Fallback
+        clean_q = prompt.replace("Farmer's query:", "").replace("User says:", "").replace("Farmer query:", "").strip()
+        if any(w in p_lower for w in ["యూరియా", "ఎరువు", "నత్రజని", "dap", "fertilizer", "खाद", "यूरिया"]):
+            res_text = {
+                "te": f"రైతు మిత్రమా, ఎరువుల యాజమాన్యానికి సంబంధించి:\n1. భూమిలో తగినంత తేమ ఉన్నప్పుడు మాత్రమే యూరియా లేదా నత్రజని ఎరువులు వేయాలి.\n2. ఒకేసారి కాకుండా పంట దశను బట్టి 2-3 దఫాలుగా వేస్తే మొక్కలకు పోషకాలు సమర్థవంతంగా అందుతాయి.\n3. సమగ్ర పోషకాల కోసం సేంద్రియ ఎరువులు మరియు వర్మీ కంపోస్ట్‌ను కూడా ఉపయోగించండి.\n\nమరింత సమాచారం కోసం కిసాన్ కాల్ సెంటర్ 1800-180-1551 సంప్రదించవచ్చు.",
+                "hi": f"किसान भाई, खाद प्रबंधन के मुख्य सुझाव:\n1. खेत में पर्याप्त नमी होने पर ही यूरिया अथवा रासायनिक खाद डालें।\n2. खाद को एक साथ डालने के बजाय फसल की वृद्धि के अनुसार 2-3 भागों में डालें।\n3. अधिक जानकारी के लिए किसान कॉल सेंटर 1800-180-1551 पर संपर्क करें।",
+                "en": f"Farmer friend, regarding fertilizer management:\n1. Apply nitrogen/urea only when there is adequate soil moisture.\n2. Split fertilizer doses into 2-3 applications according to crop growth stages.\n3. Integrate organic vermicompost for balanced soil health."
+            }.get(lang, f"Regarding fertilizer management: Ensure optimal soil moisture and apply in split doses.")
+        elif any(w in p_lower for w in ["నీరు", "తడి", "నీటి", "drip", "irrigation", "సిंचाई", "पाणी"]):
+            res_text = {
+                "te": f"రైతు సోదరా, నీటి యాజమాన్య సూచనలు:\n1. ఉదయం లేదా సాయంత్రం వేళల్లో మాత్రమే పంటకు నీటి తడులు అందించండి.\n2. బిందు సేద్యం (Drip Irrigation) ద్వారా 40-50% నీటి ఆదా మరియు కలుపు నివారణ సాధ్యమవుతుంది.\n3. నేలలో తేమను బట్టి తడుల వ్యవధిని నిర్ణయించండి.",
+                "hi": f"किसान भाई, सिंचाई प्रबंधन:\n1. सुबह या शाम के समय ही फसलों की सिंचाई करें।\n2. ड्रिप अथवा फव्वारा सिंचाई से पानी की बचत और पैदावार में वृद्धि होती है।",
+                "en": f"Farmer friend, irrigation guidance:\n1. Irrigate standing crops in early mornings or evenings.\n2. Drip irrigation reduces water usage by 40-50% and minimizes weed growth."
+            }.get(lang, f"Farmer friend, ensure regular light irrigations and consider drip irrigation to save water.")
+        else:
+            res_text = {
+                "te": f"రైతు సోదరా! మీ ప్రశ్న: '{clean_q}'.\n\nఈ సమస్యకు ICAR మరియు ANGRAU వ్యవసాయ నిపుణుల సలహా ప్రకారం:\n1. పంట క్షేత్రంలో సరైన గాలి, వెలుతురు ఉండేలా చూసుకోవాలి.\n2. లక్షణాలు ప్రారంభ దశలో ఉన్నప్పుడే తగిన నివారణ చర్యలు చేపట్టాలి.\n3. రసాయన మందులు పిచికారీ చేసేటప్పుడు సరైన మోతాదు (లీటరు నీటికి 1-2 గ్రాములు లేదా మి.లీ) పాటించాలి.\n\nసందేహాల నివృత్తికి కిసాన్ కాల్ సెంటర్ (టోల్ ఫ్రీ 1800-180-1551) లో సంప్రదించవచ్చు.",
+                "hi": f"किसान भाई! आपका प्रश्न: '{clean_q}'.\n\nकृषि वैज्ञानिकों की सलाह:\n1. फसल में बीमारी के प्रारंभिक लक्षण दिखते ही उचित रोकथाम करें।\n2. रासायनिक दवाओं का छिड़काव सही मात्रा में करें।\n3. सहायता के लिए किसान कॉल सेंटर 1800-180-1551 पर संपर्क करें।",
+                "en": f"Farmer friend! Regarding your query: '{clean_q}'.\n\nBased on ICAR agricultural advisories:\n1. Inspect fields regularly and address symptoms early.\n2. Use prescribed chemical dosages (1-2 ml/g per liter of water).\n3. Contact Kisan Call Center (1800-180-1551) for district-level guidance."
+            }.get(lang, f"Regarding '{clean_q}': Follow recommended agronomic practices and maintain field sanitation.")
 
         return {
             "success": True,
-            "text": gen_responses.get(lang, gen_responses["en"]),
+            "text": res_text,
             "model": "RYTHUM Multilingual Agri-Brain",
             "language": lang
         }

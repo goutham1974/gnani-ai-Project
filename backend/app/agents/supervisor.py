@@ -41,22 +41,32 @@ def router_node(state: FarmerAgentState) -> FarmerAgentState:
     intent = "general"
     crop = None
 
-    # 1. Greetings & Small Talk Check (CRITICAL: prevents "hi how are you" from returning crop pests!)
-    is_greeting = any(w in query_lower for w in [
-        "hi", "hello", "hey", "how are you", "who are you", "what can you do", "help",
-        "namaste", "namaskar", "namaskaram", "kaise ho", "kaise hain", "kya haal",
-        "bagunnara", "baagunnara", "ela unnaru", "evaru meeru",
-        "hegiddira", "hegidiya", "hegidira", "yar neevu",
-        "epdi irukeenga", "vanakkam", "yaar neenga",
-        "kasa aahat", "kase aahat",
-        "నమస్కారం", "ఎలా ఉన్నారు", "బాగున్నారా", "ఎవరు మీరు", "హాయ్", "ఏం చేయగలవు",
-        "नमस्ते", "आप कैसे हैं", "कौन हो", "मदद", "क्या कर सकते हो", "कैसे हो", "हाल",
-        "ನಮಸ್ಕಾರ", "ಹೇಗಿದ್ದೀರಾ", "ನೀವು ಯಾರು", "ಏನು ಮಾಡಬಹುದು",
-        "வணக்கம்", "எப்படி இருக்கிறீர்கள்", "யார் நீங்கள்", "என்ன செய்ய முடியும்",
-        "नमस्कार", "कसे आहात", "तुम्ही कोण आहात", "काय करू शकता"
+    # 1. Greetings & Small Talk Check (ONLY pure greetings with no question)
+    words = query.strip().split()
+    has_question_word = any(q in query_lower or q in query for q in [
+        "what", "how", "why", "when", "where", "can", "should", "which", "will", "spray", "remedy", "fertilizer", "pest", "disease", "yield", "sow", "water", "irrigation", "soil", "price", "rate", "cost",
+        "ఎలా", "ఏమిటి", "ఎందుకు", "ఎప్పుడు", "ఎక్కడ", "ఎలాంటి", "సలహా", "నివారణ", "సాగు", "మందులు", "ఎరువు", "పంట", "తెగులు", "ధర", "రేటు", "ఖర్చు", "నీరు", "ఎంత", "ఏది",
+        "कैसे", "क्या", "कब", "क्यों", "कहाँ", "उपाय", "दवा", "खाद", "रोग", "भाव", "दाम", "सिंचाई", "कीटनाशक"
     ])
+    is_pure_greeting = (
+        len(words) <= 3
+        and not has_question_word
+        and any(w in query_lower for w in [
+            "hi", "hello", "hey", "how are you", "who are you",
+            "namaste", "namaskar", "namaskaram", "kaise ho", "kaise hain", "kya haal",
+            "bagunnara", "baagunnara", "ela unnaru", "evaru meeru",
+            "hegiddira", "hegidiya", "hegidira", "yar neevu",
+            "epdi irukeenga", "vanakkam", "yaar neenga",
+            "kasa aahat", "kase aahat",
+            "నమస్కారం", "ఎలా ఉన్నారు", "బాగున్నారా", "ఎవరు మీరు", "హాయ్",
+            "नमस्ते", "आप कैसे हैं", "कौन हो",
+            "ನಮಸ್ಕಾರ", "ಹೇಗಿದ್ದೀರಾ", "ನೀವು ಯಾರು",
+            "வணக்கம்", "எப்படி இருக்கிறீர்கள்", "யார் நீங்கள்",
+            "नमस्कार", "कसे आहात", "तुम्ही कोण आहात"
+        ])
+    )
 
-    if is_greeting and not any(w in query_lower for w in ["వరి", "పత్తి", "టమాటా", "మిరప", "disease", "pest", "rate", "price"]):
+    if is_pure_greeting:
         intent = "greeting"
     # 2. Check for reminder intent
     elif any(k in query_lower or k in query for k in [
@@ -79,12 +89,12 @@ def router_node(state: FarmerAgentState) -> FarmerAgentState:
     elif any(k in query_lower or k in query for k in [
         "ఆకులు", "పసుపు", "ముడుత", "తెగులు", "పురుగు", "మచ్చలు", "కాయతొలుచు", "crop", "leaf", "infection",
         "disease", "pest", "yellow", "blast", "thrips", "టామాటా", "టమాటా", "మిరప", "వరి", "పత్తి",
-        "पत्तियां", "रोग", "कीट", "रोग", "ఎరువు", "fertilizer"
+        "पत्तियां", "रोग", "कीट", "ఎరువు", "fertilizer"
     ]):
         intent = "crop_diagnosis"
     else:
-        # Conversational / General Agricultural query
-        intent = "conversational_agri"
+        # Autonomous Agricultural Advisor for ANY question asked by farmer
+        intent = "general_advisor"
 
     # Crop Identification
     if any(k in query_lower or k in query for k in ["టమాటా", "tomato", "टमाटर", "ಟೊಮೆಟೊ", "தக்காளி"]):
@@ -133,6 +143,46 @@ def greeting_agent_node(state: FarmerAgentState) -> FarmerAgentState:
         "agent": "Greeting & Conversational Agent",
         "action": "Cordial Farmer Greeting Generated",
         "detail": f"Generated welcoming response in [{lang}] via {llm_res.get('model', 'LLM')}",
+        "timestamp_ms": round(time.time() * 1000, 2)
+    })
+
+    return {
+        **state,
+        "final_response": response_text,
+        "final_response_te": response_text,
+        "final_response_en": response_text,
+        "sources_cited": [],
+        "agent_trace": traces
+    }
+
+# -------------------------------------------------------------
+# Node 2B: Autonomous Agricultural Advisor Agent (Direct Q&A via Gemini LLM)
+# -------------------------------------------------------------
+def agri_advisor_agent_node(state: FarmerAgentState) -> FarmerAgentState:
+    query = state["user_query"]
+    lang = state.get("detected_language", "te")[:2].lower()
+    crop = state.get("crop_identified")
+    traces = list(state.get("agent_trace", []))
+
+    prompt = (
+        f"You are RYTHUM AI, an intelligent multilingual agricultural operating system assistant for Indian farmers.\n"
+        f"Farmer's query: '{query}'\n\n"
+        f"Provide a direct, thorough, practical, and empathetic answer in native script for language code '{lang}'.\n"
+        f"Requirements:\n"
+        f"1. Directly answer what the farmer asked without evading or giving a generic self-introduction.\n"
+        f"2. If it is about crops, pests, soil, fertilizers, seeds, water, or government schemes, give specific names, step-by-step instructions, and scientific advice.\n"
+        f"3. If it is a general knowledge question or conversational query, answer it accurately, respectfully, and helpfully.\n"
+        f"4. Keep the language natural, respectful, and easy for an Indian farmer to understand.\n"
+        f"5. Mention Kisan Call Center toll-free 1800-180-1551 at the end for localized agronomic support."
+    )
+
+    llm_res = llm_service.generate_response_sync(prompt, target_language=lang)
+    response_text = llm_res.get("text", "")
+
+    traces.append({
+        "agent": "Agricultural Advisor Agent (Gemini LLM)",
+        "action": "Autonomous Knowledge Synthesis",
+        "detail": f"Answered question in [{lang}] via {llm_res.get('model', 'Gemini LLM')}",
         "timestamp_ms": round(time.time() * 1000, 2)
     })
 
@@ -523,6 +573,7 @@ def build_farmer_agent_graph():
     # Nodes
     workflow.add_node("router", router_node)
     workflow.add_node("greeting_agent", greeting_agent_node)
+    workflow.add_node("general_advisor", agri_advisor_agent_node)
     workflow.add_node("crop_agent", crop_agent_node)
     workflow.add_node("market_agent", market_agent_node)
     workflow.add_node("weather_agent", weather_agent_node)
@@ -542,14 +593,17 @@ def build_farmer_agent_graph():
             return "weather_agent"
         elif intent == "reminder":
             return "reminder_agent"
-        else:
+        elif intent == "greeting":
             return "greeting_agent"
+        else:
+            return "general_advisor"
 
     workflow.add_conditional_edges(
         "router",
         route_decision,
         {
             "greeting_agent": "greeting_agent",
+            "general_advisor": "general_advisor",
             "crop_agent": "crop_agent",
             "market_agent": "market_agent",
             "weather_agent": "weather_agent",
@@ -558,6 +612,7 @@ def build_farmer_agent_graph():
     )
 
     workflow.add_edge("greeting_agent", "verification")
+    workflow.add_edge("general_advisor", "verification")
     workflow.add_edge("crop_agent", "verification")
     workflow.add_edge("market_agent", "verification")
     workflow.add_edge("weather_agent", "verification")
