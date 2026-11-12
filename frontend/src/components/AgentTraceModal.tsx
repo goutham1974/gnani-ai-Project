@@ -109,3 +109,4 @@ export const AgentTraceModal: React.FC<AgentTraceModalProps> = ({
     </div>
   );
 };
+

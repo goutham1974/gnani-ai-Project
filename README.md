@@ -251,3 +251,4 @@ npm run dev
 - **Organization:** Gnani.ai
 - **Submission Deadline:** November 15, 2026 at 6:00 PM IST
 - **Developed by:** Goutham & Team
+

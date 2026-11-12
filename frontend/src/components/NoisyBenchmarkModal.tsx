@@ -175,3 +175,4 @@ export const NoisyBenchmarkModal: React.FC<NoisyBenchmarkModalProps> = ({ isOpen
     </div>
   );
 };
+

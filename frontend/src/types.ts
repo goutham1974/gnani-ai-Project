@@ -129,3 +129,4 @@ export interface BenchmarkResult {
   timestamp: string;
   status: string;
 }
+

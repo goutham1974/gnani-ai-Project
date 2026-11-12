@@ -55,3 +55,4 @@ export const MarketTicker: React.FC = () => {
     </div>
   );
 };
+

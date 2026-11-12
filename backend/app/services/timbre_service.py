@@ -10,10 +10,19 @@ from backend.app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
+LANG_MAP = {
+    "te": "telugu",
+    "hi": "hindi",
+    "kn": "kannada",
+    "ta": "tamil",
+    "mr": "marathi",
+    "en": "english"
+}
+
 class GnaniTimbreTTSService:
     """
     Gnani Timbre Text-to-Speech (TTS) Integration Service.
-    Produces natural Indian voice speech for Telugu, Hindi, and English.
+    Produces natural Indian voice speech for Telugu, Hindi, Kannada, Tamil, Marathi, and English.
     """
 
     def __init__(self):
@@ -21,7 +30,6 @@ class GnaniTimbreTTSService:
         self.base_url = settings.GNANI_BASE_URL
         self.endpoint = settings.GNANI_TTS_ENDPOINT
         self.model = settings.GNANI_TTS_MODEL
-        self.default_voice = settings.GNANI_DEFAULT_VOICE_TELUGU
 
     async def synthesize_speech(
         self,
@@ -35,7 +43,8 @@ class GnaniTimbreTTSService:
         Returns audio as base64 string and metadata.
         """
         start_time = time.time()
-        chosen_voice = voice or self.default_voice
+        chosen_voice = voice or "Nalini"
+        gnani_lang = LANG_MAP.get(language[:2].lower(), "telugu")
 
         # Live Gnani API call if key is provided
         if self.api_key and self.api_key.strip() and not self.api_key.startswith("your_"):
@@ -48,7 +57,7 @@ class GnaniTimbreTTSService:
                     "text": text,
                     "voice": chosen_voice,
                     "model": self.model,
-                    "language": "telugu" if language in ["te", "telugu"] else ("hindi" if language == "hi" else "english"),
+                    "language": gnani_lang,
                     "speed": speed
                 }
 
@@ -76,6 +85,7 @@ class GnaniTimbreTTSService:
                         "latency_ms": latency_ms,
                         "voice_used": chosen_voice,
                         "model": self.model,
+                        "language": gnani_lang,
                         "provider": f"Gnani Timbre ({self.model})"
                     }
                 else:
@@ -101,6 +111,7 @@ class GnaniTimbreTTSService:
             "latency_ms": latency_ms,
             "voice_used": chosen_voice,
             "model": f"{self.model} (Emulation)",
+            "language": gnani_lang,
             "text": text,
             "provider": f"Gnani Timbre ({self.model} - Emulation Mode)"
         }
@@ -131,10 +142,9 @@ class GnaniTimbreTTSService:
         byte_io.write(b"data")
         byte_io.write(struct.pack("<I", num_samples * sampwidth))
 
-        # Audio samples (Indian flute-like gentle frequencies ~440Hz / 554Hz with envelope)
+        # Audio samples (gentle resonant frequency chord ~440Hz / 554Hz)
         for i in range(num_samples):
             t = float(i) / framerate
-            # Envelope
             decay = math.exp(-1.5 * (t % 1.2))
             val = 0.3 * math.sin(2.0 * math.pi * 440.0 * t) + 0.2 * math.sin(2.0 * math.pi * 554.37 * t)
             sample = int(val * decay * 20000.0)

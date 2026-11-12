@@ -79,3 +79,4 @@ export const WeatherCard: React.FC = () => {
     </div>
   );
 };
+

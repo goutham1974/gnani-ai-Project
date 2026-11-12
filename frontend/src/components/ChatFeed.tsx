@@ -176,3 +176,4 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({ messages, onOpenTrace }) => 
     </div>
   );
 };
+

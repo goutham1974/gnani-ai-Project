@@ -74,3 +74,4 @@ def run_noisy_benchmark():
     Executes the automated noisy agricultural audio evaluation test suite.
     """
     return evaluation_service.run_noisy_benchmark()
+

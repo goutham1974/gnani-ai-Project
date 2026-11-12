@@ -10,12 +10,20 @@ const API_BASE_URL = 'http://localhost:8000/api';
 
 export const api = {
   // Voice Interaction (STT -> LangGraph -> TTS)
-  async sendVoiceQuery(audioBlob: Blob, preferredLanguage: string = 'indic-auto', sessionId?: string) {
+  async sendVoiceQuery(
+    audioBlob: Blob,
+    preferredLanguage: string = 'te',
+    sessionId?: string,
+    hintText?: string
+  ) {
     const formData = new FormData();
     formData.append('audio_file', audioBlob, 'farmer_voice.wav');
     formData.append('preferred_language', preferredLanguage);
     if (sessionId) {
       formData.append('session_id', sessionId);
+    }
+    if (hintText && hintText.trim()) {
+      formData.append('hint_text', hintText.trim());
     }
 
     const res = await fetch(`${API_BASE_URL}/voice/interact`, {
@@ -65,7 +73,7 @@ export const api = {
     return await res.json();
   },
 
-  async createReminder(payload: { title: string; scheduled_date: string; crop?: string; description?: string }): Promise<ReminderItem> {
+  async createReminder(payload: { title: string; scheduled_date: string; crop?: string; description?: string; language?: string }): Promise<ReminderItem> {
     const res = await fetch(`${API_BASE_URL}/farming/reminders`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

@@ -37,3 +37,4 @@ class AgricultureWeatherService:
         }
 
 weather_service = AgricultureWeatherService()
+

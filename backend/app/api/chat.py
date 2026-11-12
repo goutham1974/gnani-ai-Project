@@ -54,7 +54,7 @@ async def process_chat(req: ChatRequest):
         tts_start = time.time()
         tts_res = await timbre_service.synthesize_speech(
             text=response_text,
-            language="te" if "te" in detected_lang.lower() else "en"
+            language=detected_lang[:2].lower()
         )
         audio_base64 = tts_res.get("audio_base64", "")
         tts_latency = round((time.time() - tts_start) * 1000, 2)
@@ -102,3 +102,4 @@ async def process_chat(req: ChatRequest):
             "total_latency_ms": total_latency
         }
     }
+

@@ -54,21 +54,23 @@ async def text_to_speech(
 async def voice_interaction_pipeline(
     audio_file: UploadFile = File(...),
     session_id: Optional[str] = Form(None),
-    preferred_language: str = Form("indic-auto")
+    preferred_language: str = Form("indic-auto"),
+    hint_text: Optional[str] = Form(None)
 ):
     """
     End-to-End Multilingual Agentic Voice Pipeline:
-    Farmer Voice -> Gnani Prisma STT -> LangGraph Multi-Agent -> Gnani Timbre TTS -> Telugu Voice Response
+    Farmer Voice -> Gnani Prisma STT -> LangGraph Multi-Agent -> Gnani Timbre TTS -> Native Voice Response
     """
     overall_start = time.time()
     session = session_id or str(uuid.uuid4())
 
-    # Step 1: Transcribe via Gnani Prisma
+    # Step 1: Transcribe via Gnani Prisma (with hint_text support for live Web Speech)
     audio_bytes = await audio_file.read()
     stt_res = await prisma_service.transcribe_audio(
         audio_bytes=audio_bytes,
         filename=audio_file.filename or "farmer_voice.wav",
-        language_code=preferred_language
+        language_code=preferred_language,
+        hint_text=hint_text
     )
     user_transcript = stt_res.get("transcript", "")
     stt_latency = stt_res.get("latency_ms", 0.0)
@@ -78,7 +80,7 @@ async def voice_interaction_pipeline(
     initial_state = {
         "session_id": session,
         "user_query": user_transcript,
-        "detected_language": stt_res.get("detected_language", "te"),
+        "detected_language": preferred_language if preferred_language != "indic-auto" else stt_res.get("detected_language", "te"),
         "intent": "general",
         "crop_identified": None,
         "retrieved_advisories": [],
@@ -96,12 +98,12 @@ async def voice_interaction_pipeline(
     agent_latency = round((time.time() - agent_start) * 1000, 2)
 
     response_text = agent_output.get("final_response") or agent_output.get("final_response_te") or ""
-    detected_lang = agent_output.get("detected_language", "te")
+    detected_lang = agent_output.get("detected_language", preferred_language if preferred_language != "indic-auto" else "te")
 
-    # Step 3: Synthesize Speech via Gnani Timbre
+    # Step 3: Synthesize Speech via Gnani Timbre in farmer's chosen native language
     tts_res = await timbre_service.synthesize_speech(
         text=response_text,
-        language="te" if "te" in detected_lang.lower() else "en"
+        language=detected_lang[:2].lower()
     )
     tts_latency = tts_res.get("latency_ms", 0.0)
     total_latency = round((time.time() - overall_start) * 1000, 2)
@@ -150,3 +152,4 @@ async def voice_interaction_pipeline(
             "total_latency_ms": total_latency
         }
     }
+

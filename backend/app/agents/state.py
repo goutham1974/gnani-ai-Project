@@ -22,3 +22,4 @@ class FarmerAgentState(TypedDict):
     sources_cited: List[Dict[str, Any]]
     requires_confirmation: bool
     confirmation_payload: Optional[Dict[str, Any]]
+

@@ -49,3 +49,4 @@ class MandiMarketService:
         return results if results else self.data[:2]
 
 market_service = MandiMarketService()
+

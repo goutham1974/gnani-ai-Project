@@ -82,3 +82,4 @@ class AgriculturalRAGEngine:
         return scored_docs[:top_k]
 
 rag_engine = AgriculturalRAGEngine()
+

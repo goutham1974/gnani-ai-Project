@@ -110,3 +110,4 @@ def log_activity(req: ActivityCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(act)
     return act
+

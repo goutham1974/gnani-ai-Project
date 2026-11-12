@@ -48,3 +48,4 @@ class ConversationLog(Base):
     total_latency_ms = Column(Float, default=0.0)
     wer_score = Column(Float, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+
