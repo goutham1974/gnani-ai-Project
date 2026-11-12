@@ -1,0 +1,36 @@
+[
+  {
+    "id": "tomato_tylcv_01",
+    "crop": "Tomato / టమాటా",
+    "crop_te": "టమాటా",
+    "crop_en": "Tomato",
+    "category": "వ్యాధి నివారణ / Disease Management",
+    "issue": "Tomato Yellow Leaf Curl Virus (ఆకుముడుత / పసుపు రంగు ఆకులు)",
+    "keywords": ["yellow leaves", "పసుపు ఆకులు", "leaf curling", "ఆకు ముడుత", "tomato", "టమాటా", "తెల్లదోమ", "whitefly"],
+    "symptoms_te": "ఆకులు పసుపు రంగులోకి మారడం, చిన్నవిగా ముడుచుకుపోవడం, మొక్క ఎదుగుదల ఆగిపోవడం, పూత మరియు పిందె రాలిపోవడం.",
+    "symptoms_en": "Leaves turning yellow along margins, severe upward curling, stunted plant growth, flower dropping and reduced fruit set.",
+    "cause_te": "ఈ వ్యాధి జెమిని వైరస్ వల్ల వస్తుంది. ఇది తెల్లదోమ (Whitefly - Bemisia tabaci) ద్వారా ఒక మొక్క నుండి మరొక మొక్కకు వ్యాపిస్తుంది.",
+    "remedy_te": "1. తెల్లదోమల నివారణకు ఎకరాకు 15-20 పసుపు రంగు జిగురు అట్టలు (Yellow sticky traps) ఏర్పాటు చేయాలి.\n2. వేప నూనె (Neem Oil 10,000 ppm) 2 మి.లీ. లేదా ఎసిటామిప్రిడ్ (Acetamiprid 20% SP) 0.2 గ్రాములు లీటరు నీటికి కలిపి పిచికారీ చేయాలి.\n3. తీవ్రత ఎక్కువగా ఉంటే డైఫెంథియురాన్ (Diafenthiuron 50% WP) 1.25 గ్రాములు లీటరు నీటికి కలిపి పిచికారీ చేయాలి.\n4. వైరస్ సోకిన మొక్కలను పీకి నాశనం చేయాలి.",
+    "remedy_en": "1. Install 15-20 yellow sticky traps per acre to monitor and trap whiteflies.\n2. Spray Neem oil (10,000 ppm) @ 2ml/L or Acetamiprid 20% SP @ 0.2g/L of water.\n3. In severe cases, spray Diafenthiuron 50% WP @ 1.25g/L.\n4. Rogue out and destroy severely infected plants to prevent spread.",
+    "source_organization": "ANGRAU (ఆచార్య ఎన్.జి. రంగా వ్యవసాయ విశ్వవిద్యాలయం) & ICAR-IIHR",
+    "verified_advisory_id": "ANGRAU-HORT-TOM-2024-V3",
+    "confidence_score": 0.98
+  },
+  {
+    "id": "tomato_early_blight_02",
+    "crop": "Tomato / టమాటా",
+    "crop_te": "టమాటా",
+    "crop_en": "Tomato",
+    "category": "శిలీంద్ర వ్యాధి / Fungal Disease",
+    "issue": "Early Blight / ఆకుమచ్చ తెగులు",
+    "keywords": ["concentric rings", "మచ్చలు", "early blight", "ఆకుమచ్చ", "tomato spots", "టమాటా మచ్చలు"],
+    "symptoms_te": "కింది ఆకులపై ముదురు గోధుమ లేదా నలుపు రంగు వలయాకారపు మచ్చలు (కంటి వంటి వలయాలు) ఏర్పడి ఆకులు ఎండి రాలిపోవడం.",
+    "symptoms_en": "Concentric dark brown rings resembling target boards on lower leaves, leading to defoliation.",
+    "cause_te": "ఆల్టర్నేరియా సొలాని అనే శిలీంద్రం వల్ల తేమ ఎక్కువ ఉన్న వాతావరణంలో వ్యాపిస్తుంది.",
+    "remedy_te": "1. మాంకోజెబ్ (Mancozeb 75% WP) 2.5 గ్రాములు లేదా కాపర్ ఆక్సిక్లోరైడ్ 3 గ్రాములు లీటరు నీటికి కలిపి 10 రోజుల వ్యవధిలో రెండుసార్లు పిచికారీ చేయాలి.\n2. తీవ్ర దశలో అజాక్సిస్ట్రోబిన్ + డైఫెనోకోనజోల్ 1 మి.లీ. లీటరు నీటికి కలపాలి.",
+    "remedy_en": "Spray Mancozeb 75% WP @ 2.5g/L or Copper Oxychloride @ 3g/L. In advanced stages spray Azoxystrobin + Difenoconazole @ 1ml/L.",
+    "source_organization": "ANGRAU Vegetable Research Advisory 2024",
+    "verified_advisory_id": "ANGRAU-TOM-EB-2024-02",
+    "confidence_score": 0.96
+  }
+]

@@ -1,0 +1,38 @@
+[
+  {
+    "region": "Guntur / గుంటూరు",
+    "state": "Andhra Pradesh",
+    "temperature_c": 31,
+    "humidity_pct": 68,
+    "wind_speed_kmh": 11,
+    "condition": "Partly Cloudy / పాక్షికంగా మేఘావృతం",
+    "rain_forecast_next_3_days": "10% chance - No significant rain / వర్ష సూచన లేదు",
+    "spray_suitability": "SUITABLE / మందుల పిచికారీకి అనుకూలం",
+    "farming_advisory_te": "రాబోయే 3 రోజుల్లో వర్ష సూచన లేదు. ఉదయం 7 నుండి 10 గంటల మధ్య లేదా సాయంత్రం 4 గంటల తర్వాత పురుగు మందులు, ఎరువుల పిచికారీ చేసుకోవచ్చు.",
+    "farming_advisory_en": "No significant rain expected for the next 72 hours. Excellent conditions for pesticide or nutrient spraying during early morning (7-10 AM) or evening (4-6 PM)."
+  },
+  {
+    "region": "Warangal / వరంగల్",
+    "state": "Telangana",
+    "temperature_c": 29,
+    "humidity_pct": 74,
+    "wind_speed_kmh": 14,
+    "condition": "Cloudy with scattered showers / ఉరుములతో కూడిన జల్లులు",
+    "rain_forecast_next_3_days": "65% chance - Light to moderate rain / తేలికపాటి నుండి మోస్తరు వర్షం",
+    "spray_suitability": "NOT SUITABLE / పిచికారీ చేయవద్దు",
+    "farming_advisory_te": "రేపు సాయంత్రం వర్షం పడే అవకాశం ఉంది. మందుల పిచికారీని 2 రోజులు వాయిదా వేయండి. పంట చేలల్లో అదనపు నీరు నిలవకుండా మురుగు కాలువలు శుభ్రం చేయండి.",
+    "farming_advisory_en": "65% chance of light to moderate rain tomorrow evening. Postpone chemical sprays. Clear field drainage channels to prevent waterlogging."
+  },
+  {
+    "region": "Kurnool / కర్నూలు",
+    "state": "Andhra Pradesh",
+    "temperature_c": 33,
+    "humidity_pct": 52,
+    "wind_speed_kmh": 9,
+    "condition": "Sunny / ఎండ తీవ్రత ఉంది",
+    "rain_forecast_next_3_days": "5% chance - Dry weather / పొడి వాతావరణం",
+    "spray_suitability": "SUITABLE / అనుకూలం",
+    "farming_advisory_te": "పొడి వాతావరణం ఉంటుంది. ఆరుతడి పంటలకు సకాలంలో నీటి తడులు అందించండి.",
+    "farming_advisory_en": "Dry weather prevailing. Ensure light and frequent irrigation for standing horticultural and pulse crops."
+  }
+]

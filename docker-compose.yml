@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - GNANI_API_KEY=${GNANI_API_KEY}
+      - GNANI_BASE_URL=https://api.vachana.ai
+      - GNANI_STT_MODEL=prisma-v3.0
+      - GNANI_TTS_MODEL=timbre-v3.0
+      - DATABASE_URL=sqlite:///./rythum.db
+    volumes:
+      - ./agricultural_data:/app/agricultural_data
+      - ./backend/app:/app/backend/app
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
