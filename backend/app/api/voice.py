@@ -136,6 +136,7 @@ async def voice_interaction_pipeline(
         "success": True,
         "session_id": session,
         "query": user_transcript,
+        "transcript": user_transcript,
         "detected_language": detected_lang,
         "intent": agent_output.get("intent"),
         "agent_trace": agent_output.get("agent_trace", []),

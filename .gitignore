@@ -28,6 +28,8 @@ ENV/
 *.sqlite
 *.sqlite3
 rythum.db
+*.db-shm
+*.db-wal
 
 # Secrets & Environment
 .env

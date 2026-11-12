@@ -23,18 +23,18 @@ class Settings(BaseSettings):
     GNANI_TTS_MODEL: str = "timbre-v3.0"
     GNANI_TTS_ENDPOINT: str = "https://api.vachana.ai/api/v1/tts/inference"
 
-    # Default Voice Mapping for 6 Languages
-    GNANI_DEFAULT_VOICE_TELUGU: str = "Nalini"
-    GNANI_DEFAULT_VOICE_HINDI: str = "Nalini"
-    GNANI_DEFAULT_VOICE_KANNADA: str = "Nalini"
-    GNANI_DEFAULT_VOICE_TAMIL: str = "Nalini"
-    GNANI_DEFAULT_VOICE_MARATHI: str = "Nalini"
-    GNANI_DEFAULT_VOICE_ENGLISH: str = "Nalini"
+    # Default Voice Mapping for 6 Languages (Supported in Timbre v3.0: Lakshmi, Avinash, Shivani, Kalpana, etc.)
+    GNANI_DEFAULT_VOICE_TELUGU: str = "Lakshmi"
+    GNANI_DEFAULT_VOICE_HINDI: str = "Lakshmi"
+    GNANI_DEFAULT_VOICE_KANNADA: str = "Lakshmi"
+    GNANI_DEFAULT_VOICE_TAMIL: str = "Lakshmi"
+    GNANI_DEFAULT_VOICE_MARATHI: str = "Lakshmi"
+    GNANI_DEFAULT_VOICE_ENGLISH: str = "Lakshmi"
 
     # LLM Settings (Gemini / OpenAI / Groq / Local)
     LLM_PROVIDER: str = "gemini"  # "gemini", "openai", "groq", "mock"
     GEMINI_API_KEY: str = ""
-    GEMINI_MODEL: str = "gemini-2.0-flash"
+    GEMINI_MODEL: str = "gemini-3-flash-preview"
     OPENAI_API_KEY: str = ""
     GROQ_API_KEY: str = ""
     EVON_HF_MODEL_ID: str = "GnaniAI/evon-3.3"

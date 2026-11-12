@@ -43,40 +43,43 @@ class LLMService:
 
         # 1. Try Gemini API
         if self.gemini_key and not self.gemini_key.startswith("your_"):
-            try:
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.gemini_model}:generateContent?key={self.gemini_key}"
-                sys_prompt = (
-                    system_instruction or 
-                    f"You are RYTHUM AI, an intelligent multilingual agricultural operating system assistant for Indian farmers. "
-                    f"You MUST respond ONLY in {lang_name} using its native script (or friendly code-mixed if the user uses code-mixing). "
-                    f"Keep your answers practical, compassionate, and precise for Indian agriculture. "
-                    f"For greetings (like 'hi', 'how are you', 'who are you'), reply cordially in {lang_name}, introduce yourself as RYTHUM AI, "
-                    f"and ask how you can help their farm with crops, mandi prices, weather, or reminders."
-                )
+            models_to_try = [self.gemini_model, "gemini-3-flash-preview", "gemini-3.1-flash-lite"]
+            sys_prompt = (
+                system_instruction or 
+                f"You are RYTHUM AI, an intelligent multilingual agricultural operating system assistant for Indian farmers. "
+                f"You MUST respond ONLY in {lang_name} using its native script (or friendly code-mixed if the user uses code-mixing). "
+                f"Keep your answers practical, compassionate, and precise for Indian agriculture. "
+                f"For greetings (like 'hi', 'how are you', 'who are you'), reply cordially in {lang_name}, introduce yourself as RYTHUM AI, "
+                f"and ask how you can help their farm with crops, mandi prices, weather, or reminders."
+            )
 
-                payload = {
-                    "contents": [{"parts": [{"text": prompt}]}],
-                    "systemInstruction": {"parts": [{"text": sys_prompt}]},
-                    "generationConfig": {"temperature": temperature, "maxOutputTokens": 800}
-                }
+            payload = {
+                "contents": [{"parts": [{"text": prompt}]}],
+                "systemInstruction": {"parts": [{"text": sys_prompt}]},
+                "generationConfig": {"temperature": temperature, "maxOutputTokens": 800}
+            }
 
-                with httpx.Client(timeout=10.0) as client:
-                    resp = client.post(url, json=payload)
-
-                if resp.status_code == 200:
-                    data = resp.json()
-                    candidates = data.get("candidates", [])
-                    if candidates:
-                        content_parts = candidates[0].get("content", {}).get("parts", [])
-                        if content_parts:
-                            return {
-                                "success": True,
-                                "text": content_parts[0].get("text", "").strip(),
-                                "model": f"Google Gemini ({self.gemini_model})",
-                                "language": target_language
-                            }
-            except Exception as e:
-                logger.error(f"Error calling Gemini API: {e}")
+            with httpx.Client(timeout=10.0) as client:
+                for model_name in models_to_try:
+                    try:
+                        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={self.gemini_key}"
+                        resp = client.post(url, json=payload)
+                        if resp.status_code == 200:
+                            data = resp.json()
+                            candidates = data.get("candidates", [])
+                            if candidates:
+                                content_parts = candidates[0].get("content", {}).get("parts", [])
+                                if content_parts:
+                                    return {
+                                        "success": True,
+                                        "text": content_parts[0].get("text", "").strip(),
+                                        "model": f"Google Gemini ({model_name})",
+                                        "language": target_language
+                                    }
+                        else:
+                            logger.warning(f"Gemini {model_name} returned status {resp.status_code}: {resp.text[:120]}")
+                    except Exception as e:
+                        logger.error(f"Error calling Gemini model {model_name}: {e}")
 
         # Fallback to local multilingual generator
         return self._multilingual_fallback(prompt, target_language)

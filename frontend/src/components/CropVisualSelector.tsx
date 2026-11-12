@@ -247,3 +247,4 @@ export const CropVisualSelector: React.FC<CropVisualSelectorProps> = ({
     </div>
   );
 };
+

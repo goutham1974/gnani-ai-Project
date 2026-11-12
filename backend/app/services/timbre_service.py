@@ -1,4 +1,5 @@
 import os
+import re
 import time
 import base64
 import math
@@ -18,6 +19,31 @@ LANG_MAP = {
     "mr": "marathi",
     "en": "english"
 }
+
+def clean_text_for_speech(raw_text: str, max_chars: int = 240) -> str:
+    """
+    Cleans markdown formatting, emojis, and symbols so TTS produces crisp, natural speech
+    without reciting asterisks, hashes, or bullet points. Truncates to first 1-2 key sentences.
+    """
+    if not raw_text:
+        return ""
+    # Strip markdown symbols
+    cleaned = re.sub(r'[*#_`>~]', '', raw_text)
+    # Strip markdown links
+    cleaned = re.sub(r'\[(.*?)\]\(.*?\)', r'\1', cleaned)
+    # Strip emojis
+    cleaned = re.sub(r'[^\w\s.,!?:;\'"‘’“”\u0900-\u097F\u0C00-\u0C7F\u0C80-\u0CFF\u0B80-\u0BFF\u0980-\u09FF\u0A80-\u0AFF\-/]', ' ', cleaned)
+    # Normalize whitespace
+    cleaned = ' '.join(cleaned.split())
+    # Keep first couple of sentences if long
+    if len(cleaned) > max_chars:
+        segment = cleaned[:max_chars]
+        last_punct = max(segment.rfind('.'), segment.rfind('!'), segment.rfind('?'), segment.rfind('।'))
+        if last_punct > 80:
+            cleaned = segment[:last_punct + 1]
+        else:
+            cleaned = segment + "..."
+    return cleaned.strip()
 
 class GnaniTimbreTTSService:
     """
@@ -43,25 +69,29 @@ class GnaniTimbreTTSService:
         Returns audio as base64 string and metadata.
         """
         start_time = time.time()
-        chosen_voice = voice or "Nalini"
+        voice_attr = f"GNANI_DEFAULT_VOICE_{language.upper()}"
+        chosen_voice = voice or getattr(settings, voice_attr, "Lakshmi")
         gnani_lang = LANG_MAP.get(language[:2].lower(), "telugu")
+        spoken_text = clean_text_for_speech(text, max_chars=240) or "నమస్కారం, మీ RYTHUM AI సిద్ధంగా ఉంది."
 
         # Live Gnani API call if key is provided
         if self.api_key and self.api_key.strip() and not self.api_key.startswith("your_"):
             try:
                 headers = {
                     "X-API-Key-ID": self.api_key.strip(),
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) RYTHUM-AI/1.0"
                 }
                 payload = {
-                    "text": text,
+                    "text": spoken_text,
                     "voice": chosen_voice,
                     "model": self.model,
                     "language": gnani_lang,
                     "speed": speed
                 }
 
-                async with httpx.AsyncClient(timeout=30.0) as client:
+                timeout_cfg = httpx.Timeout(20.0, connect=10.0)
+                async with httpx.AsyncClient(timeout=timeout_cfg) as client:
                     response = await client.post(
                         self.endpoint,
                         headers=headers,
@@ -91,7 +121,7 @@ class GnaniTimbreTTSService:
                 else:
                     logger.warning(f"Gnani Timbre API returned HTTP {response.status_code}: {response.text}")
             except Exception as e:
-                logger.error(f"Error calling Gnani Timbre API: {e}")
+                logger.error(f"Error calling Gnani Timbre API: {repr(e)}")
 
         # Fallback / Synthetic Audio Generator
         # Generates a valid harmonic audio waveform so audio elements in browser can play it
