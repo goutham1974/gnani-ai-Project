@@ -8,6 +8,70 @@ interface WeatherCardProps {
   selectedLanguage?: string;
 }
 
+const REGION_TRANSLATIONS: Record<string, Record<string, string>> = {
+  Guntur: {
+    en: 'Guntur / Andhra Pradesh',
+    te: 'Guntur / గుంటూరు',
+    hi: 'Guntur / गुंटूर',
+    kn: 'Guntur / ಗುಂಟೂರು',
+    ta: 'Guntur / குண்டூர்',
+    mr: 'Guntur / गुंटूर'
+  },
+  Warangal: {
+    en: 'Warangal / Telangana',
+    te: 'Warangal / వరంగల్',
+    hi: 'Warangal / वारंगल',
+    kn: 'Warangal / ವಾರಂಗಲ್',
+    ta: 'Warangal / வாரங்கல்',
+    mr: 'Warangal / वारंगल'
+  },
+  Kurnool: {
+    en: 'Kurnool / Andhra Pradesh',
+    te: 'Kurnool / కర్నూలు',
+    hi: 'Kurnool / कर्नूल',
+    kn: 'Kurnool / ಕರ್ನೂಲು',
+    ta: 'Kurnool / கர்னூல்',
+    mr: 'Kurnool / कर्नूल'
+  },
+  Hyderabad: {
+    en: 'Hyderabad / Telangana',
+    te: 'Hyderabad / హైదరాబాద్',
+    hi: 'Hyderabad / हैदराबाद',
+    kn: 'Hyderabad / ಹೈದರಾಬಾದ್',
+    ta: 'Hyderabad / ஹைதராபாத்',
+    mr: 'Hyderabad / हैदराबाद'
+  },
+  Vijayawada: {
+    en: 'Vijayawada / Andhra Pradesh',
+    te: 'Vijayawada / విజయవాడ',
+    hi: 'Vijayawada / विजयवाड़ा',
+    kn: 'Vijayawada / ವಿಜಯವಾಡ',
+    ta: 'Vijayawada / விஜயவாடா',
+    mr: 'Vijayawada / विजयवाडा'
+  },
+  Khammam: {
+    en: 'Khammam / Telangana',
+    te: 'Khammam / ఖమ్మం',
+    hi: 'Khammam / खम्मम',
+    kn: 'Khammam / ಖಮ್ಮಂ',
+    ta: 'Khammam / கம்மம்',
+    mr: 'Khammam / खम्मम'
+  }
+};
+
+export const getLocalizedRegion = (rawRegion: string, lang: string): string => {
+  for (const [key, map] of Object.entries(REGION_TRANSLATIONS)) {
+    if (rawRegion.toLowerCase().includes(key.toLowerCase())) {
+      return map[lang] || map['en'] || `${key} / ${key}`;
+    }
+  }
+  if (rawRegion.includes(' / ')) {
+    const [engPart] = rawRegion.split(' / ');
+    return engPart.trim();
+  }
+  return rawRegion;
+};
+
 const ADVISORIES_BY_LANG: Record<string, string> = {
   te: 'వాతావరణం అనుకూలంగా ఉంది. ఉదయం లేదా సాయంత్రం వేళల్లో తెగుళ్ల నివారణ మందులు పిచికారీ చేయవచ్చు.',
   hi: 'मौसम अनुकूल है। सुबह या शाम के समय फसलों में कीटनाशक का सुरक्षित छिड़काव किया जा सकता है।',
@@ -39,17 +103,20 @@ export const WeatherCard: React.FC<WeatherCardProps> = ({ selectedLanguage = 'te
   if (!advisory) return null;
 
   const isSuitable = advisory.spray_suitability.includes('SUITABLE') && !advisory.spray_suitability.includes('NOT');
+  const localizedRegion = getLocalizedRegion(advisory.region, selectedLanguage);
   const advisoryText = ADVISORIES_BY_LANG[selectedLanguage] || advisory.farming_advisory_en || advisory.farming_advisory_te;
 
   return (
     <div className="bg-slate-900/90 border border-emerald-900/30 rounded-3xl p-5 shadow-xl backdrop-blur-md">
       <div className="flex items-center justify-between mb-3.5">
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2.5">
           <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">
             <CloudSun className="w-4 h-4 text-amber-400" />
           </div>
           <div>
-            <span className="text-sm font-bold text-white block">{advisory.region}</span>
+            <span className="text-sm font-bold text-white block font-sans tracking-wide">
+              {localizedRegion}
+            </span>
             <span className="text-[11px] text-slate-400 font-medium">{t.weatherTitle}</span>
           </div>
         </div>

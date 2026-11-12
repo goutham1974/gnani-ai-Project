@@ -1,48 +1,95 @@
 import React, { useState } from 'react';
 import { ChatMessage, AgentTraceStep } from '../types';
-import { Volume2, VolumeX, Sparkles, ShieldCheck, ChevronRight, User, Bot, Clock } from 'lucide-react';
+import { Volume2, VolumeX, Sparkles, ShieldCheck, ChevronRight, User, Bot, Clock, Loader2 } from 'lucide-react';
 import { getTranslation } from '../i18n';
+import { api } from '../services/api';
 
 interface ChatFeedProps {
   messages: ChatMessage[];
   onOpenTrace: (trace: AgentTraceStep[], messageText: string) => void;
   selectedLanguage?: string;
+  onUpdateMessageAudio?: (messageId: string, audioBase64: string) => void;
 }
 
-export const ChatFeed: React.FC<ChatFeedProps> = ({ messages, onOpenTrace, selectedLanguage = 'te' }) => {
+export const ChatFeed: React.FC<ChatFeedProps> = ({
+  messages,
+  onOpenTrace,
+  selectedLanguage = 'te',
+  onUpdateMessageAudio,
+}) => {
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
+  const [loadingTTSId, setLoadingTTSId] = useState<string | null>(null);
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
   const t = getTranslation(selectedLanguage);
 
-  const handlePlayAudio = (messageId: string, base64Audio?: string) => {
-    if (!base64Audio) return;
+  const stopCurrentAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    setPlayingAudioId(null);
+  };
 
-    if (playingAudioId === messageId) {
-      if (audioRef.current) {
-        audioRef.current.pause();
+  const playBase64Audio = (id: string, base64Audio: string) => {
+    stopCurrentAudio();
+    try {
+      const audioUrl = `data:audio/wav;base64,${base64Audio}`;
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+
+      audio.onended = () => {
         setPlayingAudioId(null);
-      }
+      };
+
+      audio.play().then(() => {
+        setPlayingAudioId(id);
+      }).catch(err => {
+        console.warn("Audio playback issue:", err);
+        setPlayingAudioId(null);
+      });
+    } catch (e) {
+      console.error(e);
+      setPlayingAudioId(null);
+    }
+  };
+
+  const handlePlayAudio = (messageId: string, base64Audio?: string) => {
+    if (playingAudioId === messageId) {
+      stopCurrentAudio();
+      return;
+    }
+    if (base64Audio) {
+      playBase64Audio(messageId, base64Audio);
+    }
+  };
+
+  // Speaks user's question via Gnani Timbre TTS
+  const handleSpeakUserMessage = async (msg: ChatMessage) => {
+    if (playingAudioId === msg.id) {
+      stopCurrentAudio();
       return;
     }
 
-    if (audioRef.current) {
-      audioRef.current.pause();
+    if (msg.audio_base64) {
+      playBase64Audio(msg.id, msg.audio_base64);
+      return;
     }
 
-    const audioUrl = `data:audio/wav;base64,${base64Audio}`;
-    const audio = new Audio(audioUrl);
-    audioRef.current = audio;
-
-    audio.onended = () => {
-      setPlayingAudioId(null);
-    };
-
-    audio.play().then(() => {
-      setPlayingAudioId(messageId);
-    }).catch(err => {
-      console.warn("Audio playback issue:", err);
-      setPlayingAudioId(null);
-    });
+    try {
+      setLoadingTTSId(msg.id);
+      const res = await api.synthesizeSpeech(msg.text, selectedLanguage);
+      if (res && res.audio_base64) {
+        msg.audio_base64 = res.audio_base64;
+        if (onUpdateMessageAudio) {
+          onUpdateMessageAudio(msg.id, res.audio_base64);
+        }
+        playBase64Audio(msg.id, res.audio_base64);
+      }
+    } catch (err) {
+      console.error("Failed to synthesize user question:", err);
+    } finally {
+      setLoadingTTSId(null);
+    }
   };
 
   if (messages.length === 0) {
@@ -50,7 +97,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({ messages, onOpenTrace, selec
   }
 
   return (
-    <div className="space-y-4 my-4">
+    <div className="space-y-4 my-2">
       {messages.map((msg) => {
         const isFarmer = msg.sender === 'farmer';
 
@@ -96,6 +143,43 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({ messages, onOpenTrace, selec
                 {msg.text}
               </div>
 
+              {/* Farmer question voice playback button */}
+              {isFarmer && (
+                <div className="mt-2.5 pt-2 border-t border-emerald-800/60 flex items-center justify-between">
+                  <button
+                    onClick={() => handleSpeakUserMessage(msg)}
+                    disabled={loadingTTSId === msg.id}
+                    className={`flex items-center space-x-1.5 px-3 py-1 rounded-xl text-xs font-bold transition-all shadow-sm ${
+                      playingAudioId === msg.id
+                        ? 'bg-rose-600 text-white animate-pulse'
+                        : 'bg-emerald-900/80 hover:bg-emerald-800 text-emerald-200 border border-emerald-600/50'
+                    }`}
+                    title={t.speakQuestion}
+                  >
+                    {playingAudioId === msg.id ? (
+                      <>
+                        <VolumeX className="w-3.5 h-3.5" />
+                        <span>{t.stopVoiceBtn}</span>
+                      </>
+                    ) : loadingTTSId === msg.id ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-300" />
+                        <span>{t.analyzingBtn}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Volume2 className="w-3.5 h-3.5 text-emerald-300" />
+                        <span>{t.speakQuestion}</span>
+                      </>
+                    )}
+                  </button>
+
+                  <span className="text-[10px] text-emerald-400/80 font-mono">
+                    Gnani Timbre TTS
+                  </span>
+                </div>
+              )}
+
               {/* Verified Citations Badge */}
               {!isFarmer && msg.sources && msg.sources.length > 0 && (
                 <div className="mt-3.5 pt-2.5 border-t border-slate-800/90">
@@ -120,7 +204,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({ messages, onOpenTrace, selec
               {!isFarmer && (
                 <div className="mt-3.5 pt-2.5 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2">
                   
-                  {/* Voice Playback Button */}
+                  {/* Repeat Voice Playback Button */}
                   {msg.audio_base64 && (
                     <button
                       onClick={() => handlePlayAudio(msg.id, msg.audio_base64)}
@@ -129,6 +213,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({ messages, onOpenTrace, selec
                           ? 'bg-rose-600 text-white animate-pulse'
                           : 'bg-gradient-to-r from-emerald-500 to-green-400 hover:from-emerald-400 hover:to-green-300 text-slate-950 shadow-emerald-500/20'
                       }`}
+                      title={t.repeatAnswer}
                     >
                       {playingAudioId === msg.id ? (
                         <>
@@ -138,7 +223,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({ messages, onOpenTrace, selec
                       ) : (
                         <>
                           <Volume2 className="w-3.5 h-3.5" />
-                          <span>{t.listenVoiceBtn}</span>
+                          <span>{t.repeatAnswer}</span>
                         </>
                       )}
                     </button>

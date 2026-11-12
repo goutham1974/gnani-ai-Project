@@ -57,6 +57,15 @@ export interface Translations {
   completedBadge: string;
   pendingBadge: string;
   markDoneBtn: string;
+  repeatAnswer: string;
+  speakQuestion: string;
+  repeatLatest: string;
+  autoVoiceOn: string;
+  autoVoiceOff: string;
+  actionWeather: string;
+  actionMandi: string;
+  actionReminder: string;
+  actionKCC: string;
 }
 
 export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
@@ -70,8 +79,8 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     dashboard: 'డ్యాష్‌బోర్డ్',
     mandiTickerTitle: 'నేటి మార్కెట్ ధరలు (APMC Mandi)',
     perQuintal: '/క్వింటాల్',
-    cropSelectorTitle: 'తక్షణ పంట వ్యాధి నిర్ధారణ & నివారణలు',
-    cropSelectorSubtitle: 'ANGRAU & ICAR శాస్త్రీయ సలహాల కోసం ఏదైనా పంటను ఎంచుకోండి',
+    cropSelectorTitle: 'పంట వ్యాధి నిర్ధారణ (Crop Diagnosis)',
+    cropSelectorSubtitle: 'ANGRAU & ICAR శాస్త్రీయ నివారణల కోసం ఎంచుకోండి',
     voiceStudioBadge: 'Gnani Prisma v3.0 STT & Timbre TTS',
     voiceStudioTitle: 'మీ మాతృభాషలో మాట్లాడండి (తెలుగు)',
     voiceStudioSubtitle: 'మైక్ బటన్ నొక్కి పంట సమస్యలు, మార్కెట్ ధరలు, వాతావరణం లేదా పనుల రిమైండర్ గురించి అడగండి.',
@@ -116,7 +125,16 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     noReminders: 'ప్రస్తుతం ఎటువంటి పెండింగ్ పనులు లేవు. మైక్‌లో మాట్లాడి రిమైండర్ నమోదు చేయవచ్చు.',
     completedBadge: 'పూర్తయింది',
     pendingBadge: 'పెండింగ్',
-    markDoneBtn: 'పూర్తి చేయండి'
+    markDoneBtn: 'పూర్తి చేయండి',
+    repeatAnswer: '🔊 సమాధానం మళ్లీ వినండి',
+    speakQuestion: '🔊 ప్రశ్న వినండి',
+    repeatLatest: '🔊 చివరి సమాధానం వినండి',
+    autoVoiceOn: 'వాయిస్ ప్లేబ్యాక్: ఆన్',
+    autoVoiceOff: 'వాయిస్ ప్లేబ్యాక్: ఆఫ్',
+    actionWeather: 'పిచికారీ వాతావరణం',
+    actionMandi: 'మార్కెట్ ధరలు',
+    actionReminder: 'ఎరువుల రిమైండర్',
+    actionKCC: 'కిసాన్ హెల్ప్‌లైన్'
   },
   hi: {
     appName: 'RYTHUM AI',
@@ -174,7 +192,16 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     noReminders: 'वर्तमान में कोई लंबित कार्य नहीं है। माइक में बोलकर रिमाइंडर जोड़ें।',
     completedBadge: 'संपन्न',
     pendingBadge: 'लंबित',
-    markDoneBtn: 'पूर्ण करें'
+    markDoneBtn: 'पूर्ण करें',
+    repeatAnswer: '🔊 उत्तर पुनः सुनें',
+    speakQuestion: '🔊 प्रश्न सुनें',
+    repeatLatest: '🔊 पिछला उत्तर सुनें',
+    autoVoiceOn: 'वॉयस प्लेबैक: ऑन',
+    autoVoiceOff: 'वॉयस प्लेबैक: ऑफ',
+    actionWeather: 'छिड़काव मौसम',
+    actionMandi: 'मंडी भाव',
+    actionReminder: 'खाद रिमाइंडर',
+    actionKCC: 'किसान हेल्पलाइन'
   },
   kn: {
     appName: 'RYTHUM AI',
@@ -186,8 +213,8 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     dashboard: 'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್',
     mandiTickerTitle: 'ಇಂದಿನ ಮಾರುಕಟ್ಟೆ ದರಗಳು (APMC Mandi)',
     perQuintal: '/ಕ್ವಿಂಟಾಲ್',
-    cropSelectorTitle: 'ತ್ವರಿತ ಬೆಳೆ ರೋಗ ಪತ್ತೆ ಮತ್ತು ಪರಿಹಾರಗಳು',
-    cropSelectorSubtitle: 'ICAR ಮತ್ತು ಕೃಷಿ ವಿಶ್ವವಿದ್ಯಾಲಯದ ದೃಢೀಕೃತ ಮಾಹಿತಿಗಾಗಿ ಬೆಳೆ ಆಯ್ಕೆಮಾಡಿ',
+    cropSelectorTitle: 'ಬೆಳೆ ರೋಗ ಪತ್ತೆ (Crop Diagnosis)',
+    cropSelectorSubtitle: 'ICAR ಮತ್ತು ಕೃಷಿ ವಿಶ್ವವಿದ್ಯಾಲಯದ ದೃಢೀಕೃತ ಪರಿಹಾರಗಳು',
     voiceStudioBadge: 'Gnani Prisma v3.0 STT & Timbre TTS',
     voiceStudioTitle: 'ನಿಮ್ಮ ಮಾತೃಭಾಷೆಯಲ್ಲಿ ಮಾತನಾಡಿ (ಕನ್ನಡ)',
     voiceStudioSubtitle: 'ಮೈಕ್ ಬಟನ್ ಒತ್ತಿ ನಿಮ್ಮ ಬೆಳೆ ಸಮಸ್ಯೆಗಳು, ಮಾರುಕಟ್ಟೆ ದರ, ಹವಾಮಾನ ಅಥವಾ ಜ್ಞಾಪನೆಗಳ ಬಗ್ಗೆ ಕೇಳಿ.',
@@ -232,7 +259,16 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     noReminders: 'ಪ್ರಸ್ತುತ ಯಾವುದೇ ಬಾಕಿ ಕೆಲಸಗಳಿಲ್ಲ. ಮೈಕ್‌ನಲ್ಲಿ ಮಾತನಾಡಿ ಜ್ಞಾಪನೆ ರಚಿಸಿ.',
     completedBadge: 'ಪೂರ್ಣಗೊಂಡಿದೆ',
     pendingBadge: 'ಬಾಕಿ ಇದೆ',
-    markDoneBtn: 'ಮುಗಿದಿದೆ ಎಂದು ಗುರುತಿಸಿ'
+    markDoneBtn: 'ಮುಗಿದಿದೆ ಎಂದು ಗುರುತಿಸಿ',
+    repeatAnswer: '🔊 ಉತ್ತರ ಮತ್ತೆ ಆಲಿಸಿ',
+    speakQuestion: '🔊 ಪ್ರಶ್ನೆ ಆಲಿಸಿ',
+    repeatLatest: '🔊 ಕೊನೆಯ ಉತ್ತರ ಆಲಿಸಿ',
+    autoVoiceOn: 'ಧ್ವನಿ ಪ್ಲೇಬ್ಯಾಕ್: ಆನ್',
+    autoVoiceOff: 'ಧ್ವನಿ ಪ್ಲೇಬ್ಯಾಕ್: ಆಫ್',
+    actionWeather: 'ಸಿಂಪರಣೆ ಹವಾಮಾನ',
+    actionMandi: 'ಮಾರುಕಟ್ಟೆ ದರ',
+    actionReminder: 'ಗೊಬ್ಬರ ಜ್ಞಾಪನೆ',
+    actionKCC: 'ಕಿಸಾನ್ ಸಹಾಯವಾಣಿ'
   },
   ta: {
     appName: 'RYTHUM AI',
@@ -244,8 +280,8 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     dashboard: 'டாஷ்போர்டு',
     mandiTickerTitle: 'இன்றைய சந்தை விலைகள் (APMC Mandi)',
     perQuintal: '/குவிண்டால்',
-    cropSelectorTitle: 'உடனடி பயிர் நோய் கண்டறிதல் மற்றும் தீர்வுகள்',
-    cropSelectorSubtitle: 'ICAR சான்றளிக்கப்பட்ட அறிவியல் ஆலோசனைகளுக்கு பயிரைத் தேர்ந்தெடுக்கவும்',
+    cropSelectorTitle: 'பயிர் நோய் கண்டறிதல் (Crop Diagnosis)',
+    cropSelectorSubtitle: 'ICAR சான்றளிக்கப்பட்ட அறிவியல் ஆலோசனைகள்',
     voiceStudioBadge: 'Gnani Prisma v3.0 STT & Timbre TTS',
     voiceStudioTitle: 'உங்கள் தாய்மொழியில் பேசுங்கள் (தமிழ்)',
     voiceStudioSubtitle: 'மைக் பொத்தானை அழுத்தி பயிர் பிரச்சனைகள், சந்தை விலை, வானிலை அல்லது நினைவூட்டல் பற்றி கேட்கவும்.',
@@ -290,7 +326,16 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     noReminders: 'தற்போது நிலுவையில் உள்ள பணிகள் ஏதுமில்லை. மைக்கில் பேசி நினைவூட்டலை உருவாக்கவும்.',
     completedBadge: 'முடிந்தது',
     pendingBadge: 'நிலுவையில்',
-    markDoneBtn: 'முடிந்ததாகக் குறிக்கவும்'
+    markDoneBtn: 'முடிந்ததாகக் குறிக்கவும்',
+    repeatAnswer: '🔊 பதிலை மீண்டும் கேளுங்கள்',
+    speakQuestion: '🔊 கேள்வியைக் கேளுங்கள்',
+    repeatLatest: '🔊 கடைசி பதிலைக் கேளுங்கள்',
+    autoVoiceOn: 'குரல் பிளேபேக்: ஆன்',
+    autoVoiceOff: 'குரல் பிளேபேக்: ஆஃப்',
+    actionWeather: 'தெளிப்பு வானிலை',
+    actionMandi: 'சந்தை விலை',
+    actionReminder: 'உர நினைவூட்டல்',
+    actionKCC: 'விவசாயி உதவி எண்'
   },
   mr: {
     appName: 'RYTHUM AI',
@@ -302,8 +347,8 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     dashboard: 'डॅशबोर्ड',
     mandiTickerTitle: 'आजचे बाजारभाव (APMC Mandi)',
     perQuintal: '/क्विंटल',
-    cropSelectorTitle: 'त्वरित पीक रोग निदान आणि उपाय',
-    cropSelectorSubtitle: 'ICAR प्रमाणित शास्त्रीय सल्ल्यासाठी पिकाची निवड करा',
+    cropSelectorTitle: 'पीक रोग निदान (Crop Diagnosis)',
+    cropSelectorSubtitle: 'ICAR प्रमाणित शास्त्रीय सल्ल्यासाठी निवड करा',
     voiceStudioBadge: 'Gnani Prisma v3.0 STT & Timbre TTS',
     voiceStudioTitle: 'आपल्या मातृभाषेत बोला (मराठी)',
     voiceStudioSubtitle: 'माइक बटण दाबा आणि पिकांचे रोग, बाजारभाव, हवामान किंवा कामांचे रिमाइंडर्स विचारा.',
@@ -348,7 +393,16 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     noReminders: 'सध्या कोणतीही प्रलंबित कामे नाहीत. माइकमध्ये बोलून रिमाइंडर जोडा.',
     completedBadge: 'पूर्ण झाले',
     pendingBadge: 'प्रलंबित',
-    markDoneBtn: 'पूर्ण म्हणून चिन्हांकित करा'
+    markDoneBtn: 'पूर्ण म्हणून चिन्हांकित करा',
+    repeatAnswer: '🔊 उत्तर पुन्हा ऐका',
+    speakQuestion: '🔊 प्रश्न ऐका',
+    repeatLatest: '🔊 शेवटचे उत्तर ऐका',
+    autoVoiceOn: 'व्हॉईस प्लेबॅक: चालू',
+    autoVoiceOff: 'व्हॉईस प्लेबॅक: बंद',
+    actionWeather: 'फवारणी हवामान',
+    actionMandi: 'बाजारभाव',
+    actionReminder: 'खत आठवण',
+    actionKCC: 'किसान हेल्पलाइन'
   },
   en: {
     appName: 'RYTHUM AI',
@@ -378,7 +432,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     tempLabel: 'Temperature',
     humidityLabel: 'Humidity',
     windLabel: 'Wind Speed',
-    quickPromptsTitle: 'Quick Voice Prompts',
+    quickPromptsTitle: 'Quick Voice Shortcuts',
     feedTitle: 'Farmer Interaction Feed',
     feedSubtitle: 'Multilingual Voice & Text Feed',
     onlineBadge: 'Gemini LLM + Gnani Agent Online',
@@ -406,7 +460,16 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     noReminders: 'No pending tasks scheduled. Speak to the assistant to create one!',
     completedBadge: 'Completed',
     pendingBadge: 'Pending',
-    markDoneBtn: 'Mark Done'
+    markDoneBtn: 'Mark Done',
+    repeatAnswer: '🔊 Repeat Spoken Answer',
+    speakQuestion: '🔊 Read Out Question',
+    repeatLatest: '🔊 Repeat Last Answer',
+    autoVoiceOn: 'Voice Audio: ON',
+    autoVoiceOff: 'Voice Audio: OFF',
+    actionWeather: 'Spray Weather',
+    actionMandi: 'Mandi Rates',
+    actionReminder: 'Fertilizer Reminder',
+    actionKCC: 'Kisan Helpline'
   }
 };
 
@@ -414,3 +477,4 @@ export const getTranslation = (lang: string): Translations => {
   const code = (lang in TRANSLATIONS ? lang : 'en') as SupportedLanguage;
   return TRANSLATIONS[code];
 };
+

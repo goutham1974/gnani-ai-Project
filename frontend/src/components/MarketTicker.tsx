@@ -18,6 +18,16 @@ const COMMODITY_NAMES: Record<string, Record<string, string>> = {
   Groundnut: { te: 'వేరుశనగ', hi: 'मूंगफली', kn: 'ಕಡಲೆಕಾಯಿ', ta: 'வேர்க்கடலை', mr: 'भुईमूग', en: 'Groundnut' }
 };
 
+const MARKET_LOCALIZATION: Record<string, Record<string, string>> = {
+  Guntur: { en: 'Guntur', te: 'గుంటూరు', hi: 'गुंटूर', kn: 'ಗುಂಟೂರು', ta: 'குண்டூர்', mr: 'गुंटूर' },
+  Warangal: { en: 'Warangal', te: 'వరంగల్', hi: 'वारंगल', kn: 'ವಾರಂಗಲ್', ta: 'வாரங்கல்', mr: 'वारंगल' },
+  Kurnool: { en: 'Kurnool', te: 'కర్నూలు', hi: 'कर्नूल', kn: 'ಕರ್ನೂಲು', ta: 'கர்னூல்', mr: 'कर्नूल' },
+  Madanapalle: { en: 'Madanapalle', te: 'మదనపల్లె', hi: 'मदनपल्ले', kn: 'ಮದನಪಲ್ಲಿ', ta: 'மதனபள்ளி', mr: 'मदनपल्ले' },
+  Bowenpally: { en: 'Bowenpally', te: 'బోయిన్‌పల్లి', hi: 'बोवेनपल्ली', kn: 'ಬೋವನ್‌ಪಲ್ಲಿ', ta: 'போவன்பல்லி', mr: 'बोवेनपल्ली' },
+  Khammam: { en: 'Khammam', te: 'ఖమ్మం', hi: 'खम्मम', kn: 'ಖಮ್ಮಂ', ta: 'கம்மம்', mr: 'खम्मम' },
+  Nizamabad: { en: 'Nizamabad', te: 'నిజామాబాద్', hi: 'निज़ामाबाद', kn: 'ನಿಜಾಮಾಬಾದ್', ta: 'நிஜாமாபாத்', mr: 'निझामाबाद' }
+};
+
 export const MarketTicker: React.FC<MarketTickerProps> = ({ selectedLanguage = 'te' }) => {
   const [rates, setRates] = useState<MandiRate[]>([]);
   const t = getTranslation(selectedLanguage);
@@ -36,11 +46,26 @@ export const MarketTicker: React.FC<MarketTickerProps> = ({ selectedLanguage = '
   };
 
   const getLocalizedCrop = (comm: string, defaultTe: string) => {
-    const found = COMMODITY_NAMES[comm];
-    if (found && found[selectedLanguage]) {
-      return found[selectedLanguage];
+    const cleanComm = comm.split(' / ')[0].trim();
+    const found = COMMODITY_NAMES[cleanComm] || COMMODITY_NAMES[comm];
+    const nativeName = found ? found[selectedLanguage] : defaultTe;
+    if (selectedLanguage === 'en' || !nativeName || nativeName === cleanComm) {
+      return cleanComm;
     }
-    return defaultTe || comm;
+    return `${cleanComm} / ${nativeName}`;
+  };
+
+  const getLocalizedMarket = (rawMarket: string) => {
+    for (const [key, map] of Object.entries(MARKET_LOCALIZATION)) {
+      if (rawMarket.toLowerCase().includes(key.toLowerCase())) {
+        const native = map[selectedLanguage] || map['en'] || key;
+        if (selectedLanguage === 'en' || native === key) {
+          return key;
+        }
+        return `${key} / ${native}`;
+      }
+    }
+    return rawMarket.split('(')[0].trim();
   };
 
   return (
@@ -61,7 +86,9 @@ export const MarketTicker: React.FC<MarketTickerProps> = ({ selectedLanguage = '
                 <span className="font-semibold text-white">
                   {getLocalizedCrop(item.commodity, item.commodity_te)}
                 </span>
-                <span className="text-slate-400 text-[11px]">({item.market.split(' ')[0]})</span>
+                <span className="text-slate-400 text-[11px]">
+                  ({getLocalizedMarket(item.market)})
+                </span>
                 <span className="font-mono font-bold text-emerald-400">₹{item.modal_price.toLocaleString()}</span>
                 <span className="text-[10px] text-slate-400">{t.perQuintal}</span>
                 {item.trend.includes('Up') || item.trend.includes('పెరుగు') ? (

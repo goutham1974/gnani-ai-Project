@@ -38,6 +38,27 @@ export const api = {
     return await res.json();
   },
 
+  // Text-to-Speech (Direct Gnani Timbre TTS)
+  async synthesizeSpeech(text: string, language: string = 'te', voice?: string) {
+    const formData = new FormData();
+    formData.append('text', text);
+    formData.append('language', language);
+    if (voice) {
+      formData.append('voice', voice);
+    }
+
+    const res = await fetch(`${API_BASE_URL}/voice/tts`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!res.ok) {
+      throw new Error(`TTS failed with status ${res.status}`);
+    }
+
+    return await res.json();
+  },
+
   // Text Chat (LangGraph + TTS)
   async sendChatMessage(message: string, languageHint: string = 'te', sessionId?: string) {
     const res = await fetch(`${API_BASE_URL}/chat`, {
