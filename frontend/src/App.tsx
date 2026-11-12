@@ -12,7 +12,8 @@ import { NoisyBenchmarkModal } from './components/NoisyBenchmarkModal';
 import { AdminDashboard } from './components/AdminDashboard';
 import { ChatMessage, AgentTraceStep, ReminderItem } from './types';
 import { api } from './services/api';
-import { Sprout, ShieldCheck, HeartHandshake, Sparkles, Send } from 'lucide-react';
+import { getTranslation } from './i18n';
+import { Sprout, ShieldCheck, HeartHandshake, Send } from 'lucide-react';
 
 const WELCOME_GREETINGS: Record<string, string> = {
   te: 'నమస్కారం రైతు సోదరా! నేను RYTHUM AI — మీ డిజిటల్ వ్యవసాయ సహాయకుడిని 🙏\n\nమీ పంట సమస్యలు, నేటి మార్కెట్ ధరలు, వాతావరణం లేదా పనుల రిమైండర్ల గురించి మైక్ నొక్కి మీ సొంత భాషలో మాట్లాడండి.',
@@ -38,9 +39,10 @@ export function App() {
   const [isRemindersOpen, setIsRemindersOpen] = useState(false);
   const [isBenchmarkOpen, setIsBenchmarkOpen] = useState(false);
 
+  const t = getTranslation(selectedLanguage);
+
   useEffect(() => {
     loadReminders();
-    // Set greeting for currently selected language
     setInitialGreeting(selectedLanguage);
   }, []);
 
@@ -79,11 +81,15 @@ export function App() {
 
     try {
       const res = await api.sendVoiceQuery(audioBlob, selectedLanguage, undefined, liveTranscript);
+      const recognizedText = res.query || liveTranscript || t.farmerVoiceLabel;
+      
+      // Update text input box with the recognized voice text
+      setTextInput(recognizedText);
 
       const farmerMsg: ChatMessage = {
         id: userMsgId,
         sender: 'farmer',
-        text: res.query || liveTranscript || 'రైతు వాయిస్ ప్రశ్న...',
+        text: recognizedText,
         detected_language: res.detected_language || selectedLanguage,
         timestamp: timeStr,
       };
@@ -108,7 +114,11 @@ export function App() {
       const errMsg: ChatMessage = {
         id: 'err_' + Date.now(),
         sender: 'rythum',
-        text: 'క్షమించండి, సర్వర్ అనుసంధానంలో చిన్న లోపం ఏర్పడింది. దయచేసి మళ్లీ ప్రయత్నించండి.',
+        text: selectedLanguage === 'te' 
+          ? 'క్షమించండి, సర్వర్ అనుసంధానంలో చిన్న లోపం ఏర్పడింది. దయచేసి మళ్లీ ప్రయత్నించండి.'
+          : selectedLanguage === 'hi'
+          ? 'क्षमा करें, सर्वर कनेक्शन में समस्या आई। कृपया पुनः प्रयास करें।'
+          : 'Sorry, a temporary network issue occurred. Please try again.',
         timestamp: timeStr,
       };
       setMessages((prev) => [...prev, errMsg]);
@@ -120,6 +130,7 @@ export function App() {
   // Handle prompt or crop click
   const handleSelectPrompt = async (promptText: string) => {
     setIsProcessing(true);
+    setTextInput(promptText);
     const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
     const farmerMsg: ChatMessage = {
@@ -160,7 +171,6 @@ export function App() {
     e.preventDefault();
     if (!textInput.trim() || isProcessing) return;
     const msg = textInput.trim();
-    setTextInput('');
     handleSelectPrompt(msg);
   };
 
@@ -173,7 +183,7 @@ export function App() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-slate-950">
       
-      {/* Top Floating Glassmorphism Navbar */}
+      {/* Top Floating Glassmorphism Navbar with 6 Languages */}
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -185,7 +195,7 @@ export function App() {
       />
 
       {/* Live APMC Mandi Ticker */}
-      <MarketTicker />
+      <MarketTicker selectedLanguage={selectedLanguage} />
 
       {/* Main Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -203,15 +213,16 @@ export function App() {
               {/* Left Column: Voice Studio, Weather, Quick Prompts */}
               <div className="lg:col-span-5 space-y-6">
                 
-                {/* Big Glowing Futuristic Microphone */}
+                {/* Central Futuristic Microphone with Real-time Speech Sync */}
                 <VoiceRecorder
                   onAudioReady={handleAudioReady}
+                  onLiveSpeech={(transcript) => setTextInput(transcript)}
                   isProcessing={isProcessing}
                   selectedLanguage={selectedLanguage}
                 />
 
                 {/* Weather & Spray Index */}
-                <WeatherCard />
+                <WeatherCard selectedLanguage={selectedLanguage} />
 
                 {/* Localized Quick Prompts */}
                 <QuickPrompts
@@ -225,24 +236,24 @@ export function App() {
               {/* Right Column: Conversational Feed & Citations */}
               <div className="lg:col-span-7 flex flex-col">
                 
-                <div className="bg-slate-900/70 border border-emerald-900/30 rounded-3xl p-5 sm:p-6 shadow-2xl min-h-[600px] flex flex-col justify-between backdrop-blur-md">
+                <div className="bg-slate-900/80 border border-emerald-900/40 rounded-3xl p-5 sm:p-6 shadow-2xl min-h-[600px] flex flex-col justify-between backdrop-blur-xl">
                   
                   {/* Feed Header */}
-                  <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
-                        <Sprout className="w-4 h-4 text-emerald-400" />
+                  <div className="flex items-center justify-between pb-3.5 border-b border-slate-800">
+                    <div className="flex items-center space-x-2.5">
+                      <div className="w-9 h-9 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
+                        <Sprout className="w-5 h-5 text-emerald-400" />
                       </div>
                       <div>
-                        <h3 className="text-sm font-bold text-white">రైతు సంభాషణ (Farmer Interaction Feed)</h3>
-                        <p className="text-[11px] text-slate-400">Multilingual Voice & Text Feed</p>
+                        <h3 className="text-sm font-bold text-white">{t.feedTitle}</h3>
+                        <p className="text-[11px] text-slate-400">{t.feedSubtitle}</p>
                       </div>
                     </div>
 
                     <div className="flex items-center space-x-2">
-                      <span className="text-[10px] font-mono text-emerald-300 bg-emerald-950/80 px-2.5 py-1 rounded-full border border-emerald-800 font-bold flex items-center space-x-1">
+                      <span className="text-[10px] font-mono text-emerald-300 bg-emerald-950/90 px-3 py-1 rounded-full border border-emerald-700/80 font-bold flex items-center space-x-1.5 shadow-sm">
                         <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <span>LLM + Agent Online</span>
+                        <span>{t.onlineBadge}</span>
                       </span>
                     </div>
                   </div>
@@ -252,44 +263,38 @@ export function App() {
                     <ChatFeed
                       messages={messages}
                       onOpenTrace={handleOpenTrace}
+                      selectedLanguage={selectedLanguage}
                     />
                   </div>
 
-                  {/* Text Input Fallback / Alternative to Voice */}
-                  <form onSubmit={handleTextSubmit} className="mt-4 pt-3 border-t border-slate-800 flex items-center space-x-2">
+                  {/* Text / Transcribed Voice Input Box */}
+                  <form onSubmit={handleTextSubmit} className="mt-4 pt-3.5 border-t border-slate-800 flex items-center space-x-2">
                     <input
                       type="text"
-                      placeholder={
-                        selectedLanguage === 'te' ? 'మీ ప్రశ్నను ఇక్కడ టైప్ చేయవచ్చు...' :
-                        selectedLanguage === 'hi' ? 'अपना प्रश्न यहाँ टाइप कर सकते हैं...' :
-                        selectedLanguage === 'kn' ? 'ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ಇಲ್ಲಿ ಟೈಪ್ ಮಾಡಿ...' :
-                        selectedLanguage === 'ta' ? 'உங்கள் கேள்வியை இங்கே தட்டச்சு செய்யவும்...' :
-                        selectedLanguage === 'mr' ? 'आपला प्रश्न येथे टाइप करा...' :
-                        'Type your farming query here...'
-                      }
+                      placeholder={t.inputPlaceholder}
                       value={textInput}
                       onChange={(e) => setTextInput(e.target.value)}
                       disabled={isProcessing}
-                      className="flex-1 px-4 py-2.5 rounded-2xl bg-slate-950 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500/70 transition-colors shadow-inner"
+                      className="flex-1 px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors shadow-inner"
                     />
                     <button
                       type="submit"
                       disabled={isProcessing || !textInput.trim()}
-                      className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-green-500 hover:from-emerald-500 hover:to-green-400 text-slate-950 font-bold text-xs flex items-center space-x-1.5 shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                      className="px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-green-500 hover:from-emerald-500 hover:to-green-400 text-slate-950 font-bold text-xs flex items-center space-x-1.5 shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     >
-                      <span>పంపు</span>
+                      <span>{t.sendBtn}</span>
                       <Send className="w-3.5 h-3.5" />
                     </button>
                   </form>
 
                   {/* Footer Assurance */}
-                  <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between text-slate-400 text-xs mt-3">
+                  <div className="pt-3 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between text-slate-400 text-xs mt-3 gap-1">
                     <div className="flex items-center space-x-1.5">
-                      <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                      <span>ధ్రువీకరించిన ANGRAU & ICAR శాస్త్రీయ సమాచారం</span>
+                      <ShieldCheck className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                      <span>{t.footerAssurance}</span>
                     </div>
-                    <div className="text-[11px] font-mono text-slate-500">
-                      Kisan Call Center: 1800-180-1551
+                    <div className="text-[11px] font-mono text-slate-400 font-semibold">
+                      {t.kisanCallCenter}
                     </div>
                   </div>
 
@@ -318,6 +323,7 @@ export function App() {
         onClose={() => setIsRemindersOpen(false)}
         reminders={reminders}
         onRefresh={loadReminders}
+        selectedLanguage={selectedLanguage}
       />
 
       <NoisyBenchmarkModal
@@ -331,7 +337,7 @@ export function App() {
           <div className="flex items-center space-x-1.5">
             <HeartHandshake className="w-4 h-4 text-emerald-400" />
             <span className="font-semibold text-slate-300">RYTHUM AI</span>
-            <span>— Great Indian AI Internship Challenge 2026 (Gnani.ai)</span>
+            <span>— Great Indian AI Internship Challenge (Gnani.ai)</span>
           </div>
           <div className="text-[11px] text-slate-400 font-mono">
             Languages: Telugu • Hindi • Kannada • Tamil • Marathi • English

@@ -171,55 +171,56 @@ def crop_agent_node(state: FarmerAgentState) -> FarmerAgentState:
         source_org = top_doc.get("source_organization", "ANGRAU / ICAR")
         advisory_id = top_doc.get("verified_advisory_id", "ANGRAU-REF")
 
-        if lang == "te":
-            response_text = (
-                f"రైతు సోదరునికి నమస్కారం. మీ {crop_name} పంటలో కనిపించే సమస్య: **{issue}**.\n\n"
-                f"**కారణం:** {top_doc.get('cause_te', 'వైరస్ లేదా కీటకాల వ్యాప్తి వల్ల ఈ లక్షణాలు కనిపిస్తాయి.')}\n\n"
-                f"**నివారణ చర్యలు (శాస్త్రీయ సిఫార్సులు):**\n"
-                f"{remedy_te}\n\n"
-                f"📌 **ధ్రువీకరించిన మూలం:** {source_org} (అడ్వైజరీ ID: `{advisory_id}`).\n"
-                f"సలహా: మందులు పిచికారీ చేసేటప్పుడు రక్షణ జాగ్రత్తలు పాటించండి."
-            )
-        elif lang == "hi":
-            response_text = (
-                f"नमस्ते किसान भाई। आपकी {crop_name} फसल में पहचानी गई समस्या: **{issue}**।\n\n"
-                f"**वैज्ञानिक रोकथाम के उपाय:**\n"
-                f"{remedy_en}\n\n"
-                f"📌 **प्रमाणित स्रोत:** {source_org} (Advisory ID: `{advisory_id}`)।"
-            )
-        elif lang == "kn":
-            response_text = (
-                f"ನಮಸ್ಕಾರ ರೈತ ಮಿತ್ರರೇ. ನಿಮ್ಮ {crop_name} ಬೆಳೆಯಲ್ಲಿ ಗುರುತಿಸಲಾದ ಸಮಸ್ಯೆ: **{issue}**.\n\n"
-                f"**ಶಾಸ್ತ್ರೀಯ ಪರಿಹಾರ ಕ್ರಮಗಳು:**\n"
-                f"{remedy_en}\n\n"
-                f"📌 **ದೃಢೀಕೃತ ಮೂಲ:** {source_org} (`{advisory_id}`)."
-            )
-        elif lang == "ta":
-            response_text = (
-                f"வணக்கம் விவசாய தோழரே. உங்கள் {crop_name} பயிரில் கண்டறியப்பட்ட பிரச்சனை: **{issue}**.\n\n"
-                f"**பரிந்துரைக்கப்பட்ட அறிவியல் தீர்வுகள்:**\n"
-                f"{remedy_en}\n\n"
-                f"📌 **சான்றளிக்கப்பட்ட ஆதாரம்:** {source_org} (`{advisory_id}`)."
-            )
-        elif lang == "mr":
-            response_text = (
-                f"नमस्कार शेतकरी बंधू. आपल्या {crop_name} पिकावरील समस्या: **{issue}**.\n\n"
-                f"**शास्त्रीय उपाययोजना:**\n"
-                f"{remedy_en}\n\n"
-                f"📌 **प्रमाणित संदर्भ:** {source_org} (`{advisory_id}`)."
-            )
+        # Synthesize evidence-grounded response via Gemini LLM in farmer's native language
+        prompt = (
+            f"You are RYTHUM AI, an intelligent multilingual agricultural operating system assistant for Indian farmers.\n"
+            f"Farmer's query: '{query}'\n"
+            f"Verified Scientific Research Advisory from {source_org}:\n"
+            f"- Crop: {crop_name}\n"
+            f"- Identified Issue / Disease: {issue}\n"
+            f"- Scientific Cause: {top_doc.get('cause_te', '')} / {top_doc.get('cause_en', '')}\n"
+            f"- Standard Remedies: {remedy_te} / {remedy_en}\n"
+            f"- Advisory Reference: {source_org} (ID: {advisory_id})\n\n"
+            f"Provide an evidence-grounded, empathetic, and comprehensive response in native script for language code '{lang}'.\n"
+            f"Structure clearly with:\n"
+            f"1. Warm farmer greeting & diagnosis of {crop_name} - {issue}\n"
+            f"2. Cause of infection/infestation\n"
+            f"3. Practical chemical and organic remedies with proper spray dosage (e.g. ml or grams per liter)\n"
+            f"4. Citation of {source_org} (Advisory ID: {advisory_id})\n"
+            f"5. Mention Kisan Call Center toll-free 1800-180-1551 for localized support."
+        )
+
+        llm_res = llm_service.generate_response_sync(prompt, target_language=lang)
+        if llm_res.get("text"):
+            response_text = llm_res["text"]
         else:
-            response_text = (
-                f"Scientific Advisory for {crop_name}: **{issue}**.\n\n"
-                f"**Symptoms:** {top_doc.get('symptoms_en', '')}\n\n"
-                f"**Recommended Treatment:**\n"
-                f"{remedy_en}\n\n"
-                f"📌 **Verified Reference:** {source_org} (`{advisory_id}`)."
-            )
+            if lang == "te":
+                response_text = (
+                    f"రైతు సోదరునికి నమస్కారం. మీ {crop_name} పంటలో కనిపించే సమస్య: **{issue}**.\n\n"
+                    f"**కారణం:** {top_doc.get('cause_te', 'వైరస్ లేదా కీటకాల వ్యాప్తి వల్ల ఈ లక్షణాలు కనిపిస్తాయి.')}\n\n"
+                    f"**నివారణ చర్యలు (శాస్త్రీయ సిఫార్సులు):**\n"
+                    f"{remedy_te}\n\n"
+                    f"📌 **ధ్రువీకరించిన మూలం:** {source_org} (అడ్వైజరీ ID: `{advisory_id}`).\n"
+                    f"సలహా: మందులు పిచికారీ చేసేటప్పుడు రక్షణ జాగ్రత్తలు పాటించండి."
+                )
+            elif lang == "hi":
+                response_text = (
+                    f"नमस्ते किसान भाई। आपकी {crop_name} फसल में पहचानी गई समस्या: **{issue}**।\n\n"
+                    f"**वैज्ञानिक रोकथाम के उपाय:**\n"
+                    f"{remedy_en}\n\n"
+                    f"📌 **प्रमाणित स्रोत:** {source_org} (Advisory ID: `{advisory_id}`)।"
+                )
+            else:
+                response_text = (
+                    f"Scientific Advisory for {crop_name}: **{issue}**.\n\n"
+                    f"**Recommended Treatment:**\n"
+                    f"{remedy_en}\n\n"
+                    f"📌 **Verified Reference:** {source_org} (`{advisory_id}`)."
+                )
     else:
-        # Fallback to LLM for non-corpus crop queries
+        # LLM reasoning for non-corpus crop queries
         llm_res = llm_service.generate_response_sync(
-            prompt=f"Farmer query: '{query}'. Provide verified agricultural disease or nutrient management advice.",
+            prompt=f"Farmer query: '{query}'. Provide verified agricultural disease, nutrient, or agronomic management advice with specific dosages.",
             target_language=lang
         )
         response_text = llm_res.get("text", "")
@@ -238,6 +239,7 @@ def crop_agent_node(state: FarmerAgentState) -> FarmerAgentState:
 # Node 4: Market Intelligence Agent
 # -------------------------------------------------------------
 def market_agent_node(state: FarmerAgentState) -> FarmerAgentState:
+    query = state.get("user_query", "")
     crop = state.get("crop_identified") or "Tomato"
     lang = state.get("detected_language", "te")[:2].lower()
     traces = list(state.get("agent_trace", []))
@@ -257,54 +259,53 @@ def market_agent_node(state: FarmerAgentState) -> FarmerAgentState:
         market_name = primary["market"]
         trend = primary["trend"]
 
-        if lang == "te":
-            response_text = (
-                f"నేటి మార్కెట్ సమాచారం: **{primary['commodity_te']}**\n\n"
-                f"📍 **మార్కెట్ యార్డ్:** {market_name}\n"
-                f"💰 **సగటు ధర:** ₹{modal_price:,} / క్వింటాల్ (సుమారు ₹{primary.get('price_per_kg', modal_price/100)} / కేజీ)\n"
-                f"📊 **ధర సరళి:** {trend}\n"
-                f"💡 **విక్రయ సలహా:** {primary['recommendation_te']}"
-            )
-        elif lang == "hi":
-            response_text = (
-                f"आज का मंडी भाव: **{primary['commodity']}**\n\n"
-                f"📍 **मंडी:** {market_name}\n"
-                f"💰 **औसत भाव:** ₹{modal_price:,} / क्विंटल (लगभग ₹{primary.get('price_per_kg', modal_price/100)} / किलो)\n"
-                f"📊 **रुझान:** {trend}\n"
-                f"💡 **सलाह:** {primary.get('recommendation_en', '')}"
-            )
-        elif lang == "kn":
-            response_text = (
-                f"ಇಂದಿನ ಮಾರುಕಟ್ಟೆ ದರ: **{primary['commodity']}**\n\n"
-                f"📍 **ಮಾರುಕಟ್ಟೆ:** {market_name}\n"
-                f"💰 **ಮಾದರಿ ಬೆಲೆ:** ₹{modal_price:,} / ಕ್ವಿಂಟಾಲ್\n"
-                f"📊 **ಪ್ರವೃತ್ತಿ:** {trend}\n"
-                f"💡 **ಸಲಹೆ:** {primary.get('recommendation_en', '')}"
-            )
-        elif lang == "ta":
-            response_text = (
-                f"இன்றைய சந்தை விலை: **{primary['commodity']}**\n\n"
-                f"📍 **சந்தை:** {market_name}\n"
-                f"💰 **விலை:** ₹{modal_price:,} / குவிண்டால்\n"
-                f"📊 **போக்கு:** {trend}\n"
-                f"💡 **ஆலோசனை:** {primary.get('recommendation_en', '')}"
-            )
-        elif lang == "mr":
-            response_text = (
-                f"आजचे बाजारभाव: **{primary['commodity']}**\n\n"
-                f"📍 **बाजार समिती:** {market_name}\n"
-                f"💰 **सरासरी दर:** ₹{modal_price:,} / क्विंटल\n"
-                f"📊 **कल:** {trend}\n"
-                f"💡 **सल्ला:** {primary.get('recommendation_en', '')}"
-            )
+        # Synthesize real-time mandi analysis via Gemini LLM
+        prompt = (
+            f"You are RYTHUM AI, an expert agricultural marketing and commodity advisor for Indian farmers.\n"
+            f"Farmer's query: '{query}'\n"
+            f"Live Verified Mandi Rates for {crop}:\n"
+            f"- Primary Market Yard: {market_name}\n"
+            f"- Modal Price: ₹{modal_price:,} per Quintal (~₹{primary.get('price_per_kg', modal_price/100)}/kg)\n"
+            f"- Price Trend: {trend}\n"
+            f"- Recommended Strategy: {primary.get('recommendation_te', '')} / {primary.get('recommendation_en', '')}\n"
+            f"- Comparative Market Data: {rates}\n\n"
+            f"Synthesize an insightful, practical market intelligence report in native script for language code '{lang}'.\n"
+            f"Include:\n"
+            f"1. Crop name and primary APMC mandi yard\n"
+            f"2. Current modal price per quintal and per kilogram\n"
+            f"3. Market trend analysis (is price expected to rise or soften?)\n"
+            f"4. Direct recommendation: should the farmer sell today or store/wait for higher price?\n"
+            f"5. Crop grading & cleaning tips to obtain maximum price."
+        )
+
+        llm_res = llm_service.generate_response_sync(prompt, target_language=lang)
+        if llm_res.get("text"):
+            response_text = llm_res["text"]
         else:
-            response_text = (
-                f"Market Intelligence for **{primary['commodity']}**:\n\n"
-                f"📍 **Mandi:** {market_name}\n"
-                f"💰 **Modal Price:** ₹{modal_price:,} / Quintal (~₹{primary.get('price_per_kg', modal_price/100)} / kg)\n"
-                f"📊 **Trend:** {trend}\n"
-                f"💡 **Advisory:** {primary['recommendation_en']}"
-            )
+            if lang == "te":
+                response_text = (
+                    f"నేటి మార్కెట్ సమాచారం: **{primary['commodity_te']}**\n\n"
+                    f"📍 **మార్కెట్ యార్డ్:** {market_name}\n"
+                    f"💰 **సగటు ధర:** ₹{modal_price:,} / క్వింటాల్ (సుమారు ₹{primary.get('price_per_kg', modal_price/100)} / కేజీ)\n"
+                    f"📊 **ధర సరళి:** {trend}\n"
+                    f"💡 **విక్రయ సలహా:** {primary['recommendation_te']}"
+                )
+            elif lang == "hi":
+                response_text = (
+                    f"आज का मंडी भाव: **{primary['commodity']}**\n\n"
+                    f"📍 **मंडी:** {market_name}\n"
+                    f"💰 **औसत भाव:** ₹{modal_price:,} / क्विंटल (लगभग ₹{primary.get('price_per_kg', modal_price/100)} / किलो)\n"
+                    f"📊 **रुझान:** {trend}\n"
+                    f"💡 **सलाह:** {primary.get('recommendation_en', '')}"
+                )
+            else:
+                response_text = (
+                    f"Market Intelligence for **{primary['commodity']}**:\n\n"
+                    f"📍 **Mandi:** {market_name}\n"
+                    f"💰 **Modal Price:** ₹{modal_price:,} / Quintal (~₹{primary.get('price_per_kg', modal_price/100)} / kg)\n"
+                    f"📊 **Trend:** {trend}\n"
+                    f"💡 **Advisory:** {primary['recommendation_en']}"
+                )
     else:
         response_text = "Market rates currently updating. Please check back shortly."
 
@@ -339,54 +340,55 @@ def weather_agent_node(state: FarmerAgentState) -> FarmerAgentState:
     wind = weather_data["wind_speed_kmh"]
     suitability = weather_data["spray_suitability"]
 
-    if lang == "te":
-        response_text = (
-            f"రైతు వాతావరణ సమాచారం — **{weather_data['region']}**:\n\n"
-            f"🌡️ **ఉష్ణోగ్రత:** {temp}°C | 💧 **తేమ:** {humidity}% | 💨 **గాలి:** {wind} km/h\n"
-            f"🌧️ **3 రోజుల వర్ష సూచన:** {weather_data['rain_forecast_next_3_days']}\n"
-            f"🎯 **మందుల పిచికారీ అనుకూలత:** **{suitability}**\n\n"
-            f"📋 **సలహా:** {weather_data['farming_advisory_te']}"
-        )
-    elif lang == "hi":
-        response_text = (
-            f"कृषि मौसम परामर्श — **{weather_data['region']}**:\n\n"
-            f"🌡️ **तापमान:** {temp}°C | 💧 **नमी:** {humidity}% | 💨 **हवा:** {wind} km/h\n"
-            f"🌧️ **बारिश का अनुमान:** {weather_data['rain_forecast_next_3_days']}\n"
-            f"🎯 **कीटनाशक छिड़काव:** **{suitability}**\n\n"
-            f"📋 **सलाह:** {weather_data['farming_advisory_en']}"
-        )
-    elif lang == "kn":
-        response_text = (
-            f"ಕೃಷಿ ಹವಾಮಾನ ವರದಿ — **{weather_data['region']}**:\n\n"
-            f"🌡️ **ತಾಪಮಾನ:** {temp}°C | 💧 **ತೇವಾಂಶ:** {humidity}% | 💨 **ಗಾಳಿ:** {wind} km/h\n"
-            f"🌧️ **ಮಳೆ ಮುನ್ಸೂಚನೆ:** {weather_data['rain_forecast_next_3_days']}\n"
-            f"🎯 **ಔಷಧಿ ಸಿಂಪರಣೆ:** **{suitability}**\n\n"
-            f"📋 **ಸಲಹೆ:** {weather_data['farming_advisory_en']}"
-        )
-    elif lang == "ta":
-        response_text = (
-            f"விவசாய வானிலை அறிக்கை — **{weather_data['region']}**:\n\n"
-            f"🌡️ **வெப்பநிலை:** {temp}°C | 💧 **ஈரப்பதம்:** {humidity}% | 💨 **காற்று:** {wind} km/h\n"
-            f"🌧️ **மழை முன்னறிவிப்பு:** {weather_data['rain_forecast_next_3_days']}\n"
-            f"🎯 **மருந்து தெளிப்பு:** **{suitability}**\n\n"
-            f"📋 **ஆலோசனை:** {weather_data['farming_advisory_en']}"
-        )
-    elif lang == "mr":
-        response_text = (
-            f"कृषी हवामान सल्ला — **{weather_data['region']}**:\n\n"
-            f"🌡️ **तापमान:** {temp}°C | 💧 **आर्द्रता:** {humidity}% | 💨 **वारा:** {wind} km/h\n"
-            f"🌧️ **पाऊस अंदाज:** {weather_data['rain_forecast_next_3_days']}\n"
-            f"🎯 **फवारणी योग्यता:** **{suitability}**\n\n"
-            f"📋 **सल्ला:** {weather_data['farming_advisory_en']}"
-        )
+    # Synthesize intelligent weather and spraying advisory via Gemini LLM
+    prompt = (
+        f"You are RYTHUM AI, an agrometeorological advisory expert for Indian farmers.\n"
+        f"Farmer's query: '{query}'\n"
+        f"Live Weather Data:\n"
+        f"- Location / Region: {weather_data['region']}\n"
+        f"- Current Temperature: {temp}°C\n"
+        f"- Relative Humidity: {humidity}%\n"
+        f"- Wind Velocity: {wind} km/h\n"
+        f"- 3-Day Rain Forecast: {weather_data['rain_forecast_next_3_days']}\n"
+        f"- Spraying Suitability Status: {suitability}\n"
+        f"- Regional Advisory Context: {weather_data.get('farming_advisory_te', '')} / {weather_data.get('farming_advisory_en', '')}\n\n"
+        f"Synthesize an expert agricultural weather advisory in native script for language code '{lang}'.\n"
+        f"Include:\n"
+        f"1. Temperature, humidity, and wind conditions\n"
+        f"2. Rain forecast for the coming 3 days\n"
+        f"3. Clear, unambiguous recommendation on whether it is safe to spray pesticides/fertilizers today or postpone\n"
+        f"4. Irrigation guidance (whether to irrigate or wait for rain)\n"
+        f"5. Crop protection precautions against fungal diseases or moisture stress."
+    )
+
+    llm_res = llm_service.generate_response_sync(prompt, target_language=lang)
+    if llm_res.get("text"):
+        response_text = llm_res["text"]
     else:
-        response_text = (
-            f"Agricultural Weather Advisory for **{weather_data['region']}**:\n\n"
-            f"🌡️ **Temperature:** {temp}°C | 💧 **Humidity:** {humidity}% | 💨 **Wind Speed:** {wind} km/h\n"
-            f"🌧️ **Rain Forecast (72h):** {weather_data['rain_forecast_next_3_days']}\n"
-            f"🎯 **Spraying Suitability:** **{suitability}**\n\n"
-            f"📋 **Advisory:** {weather_data['farming_advisory_en']}"
-        )
+        if lang == "te":
+            response_text = (
+                f"రైతు వాతావరణ సమాచారం — **{weather_data['region']}**:\n\n"
+                f"🌡️ **ఉష్ణోగ్రత:** {temp}°C | 💧 **తేమ:** {humidity}% | 💨 **గాలి:** {wind} km/h\n"
+                f"🌧️ **3 రోజుల వర్ష సూచన:** {weather_data['rain_forecast_next_3_days']}\n"
+                f"🎯 **మందుల పిచికారీ అనుకూలత:** **{suitability}**\n\n"
+                f"📋 **సలహా:** {weather_data['farming_advisory_te']}"
+            )
+        elif lang == "hi":
+            response_text = (
+                f"कृषि मौसम परामर्श — **{weather_data['region']}**:\n\n"
+                f"🌡️ **तापमान:** {temp}°C | 💧 **नमी:** {humidity}% | 💨 **हवा:** {wind} km/h\n"
+                f"🌧️ **बारिश का अनुमान:** {weather_data['rain_forecast_next_3_days']}\n"
+                f"🎯 **कीटनाशक छिड़काव:** **{suitability}**\n\n"
+                f"📋 **सलाह:** {weather_data['farming_advisory_en']}"
+            )
+        else:
+            response_text = (
+                f"Agricultural Weather Advisory for **{weather_data['region']}**:\n\n"
+                f"🌡️ **Temperature:** {temp}°C | 💧 **Humidity:** {humidity}% | 💨 **Wind Speed:** {wind} km/h\n"
+                f"🌧️ **Rain Forecast (72h):** {weather_data['rain_forecast_next_3_days']}\n"
+                f"🎯 **Spraying Suitability:** **{suitability}**\n\n"
+                f"📋 **Advisory:** {weather_data['farming_advisory_en']}"
+            )
 
     return {
         **state,

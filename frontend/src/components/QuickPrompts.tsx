@@ -1,5 +1,6 @@
 import React from 'react';
-import { Sparkles, MessageSquareHeart } from 'lucide-react';
+import { MessageSquareHeart } from 'lucide-react';
+import { getTranslation } from '../i18n';
 
 interface QuickPromptsProps {
   onSelectPrompt: (promptText: string) => void;
@@ -136,21 +137,13 @@ export const QuickPrompts: React.FC<QuickPromptsProps> = ({
   disabled
 }) => {
   const lang = selectedLanguage in PROMPTS[0].text ? selectedLanguage : 'en';
-
-  const headingMap: Record<string, string> = {
-    te: 'త్వరిత సంభాషణ సూచనలు (నొక్కండి):',
-    hi: 'त्वरित प्रश्न सुझाव (क्लिक करें):',
-    kn: 'ತ್ವರಿತ ಪ್ರಶ್ನೆಗಳ ಪಟ್ಟಿ (ಕ್ಲಿಕ್ ಮಾಡಿ):',
-    ta: 'விரைவு கேள்வி பரிந்துரைகள் (கிளிக் செய்க):',
-    mr: 'त्वरित प्रश्न सूचना (क्लिक करा):',
-    en: 'Quick Voice Suggestions (Tap to Ask):'
-  };
+  const t = getTranslation(selectedLanguage);
 
   return (
     <div className="mt-4">
-      <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-300 mb-2">
+      <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-300 mb-2.5">
         <MessageSquareHeart className="w-3.5 h-3.5 text-emerald-400" />
-        <span>{headingMap[lang] || headingMap['en']}</span>
+        <span>{t.quickPromptsTitle}</span>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">

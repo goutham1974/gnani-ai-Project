@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 import { ChatMessage, AgentTraceStep } from '../types';
 import { Volume2, VolumeX, Sparkles, ShieldCheck, ChevronRight, User, Bot, Clock } from 'lucide-react';
+import { getTranslation } from '../i18n';
 
 interface ChatFeedProps {
   messages: ChatMessage[];
   onOpenTrace: (trace: AgentTraceStep[], messageText: string) => void;
+  selectedLanguage?: string;
 }
 
-export const ChatFeed: React.FC<ChatFeedProps> = ({ messages, onOpenTrace }) => {
+export const ChatFeed: React.FC<ChatFeedProps> = ({ messages, onOpenTrace, selectedLanguage = 'te' }) => {
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
+  const t = getTranslation(selectedLanguage);
 
   const handlePlayAudio = (messageId: string, base64Audio?: string) => {
     if (!base64Audio) return;
@@ -47,7 +50,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({ messages, onOpenTrace }) => 
   }
 
   return (
-    <div className="space-y-4 my-6">
+    <div className="space-y-4 my-4">
       {messages.map((msg) => {
         const isFarmer = msg.sender === 'farmer';
 
@@ -58,25 +61,25 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({ messages, onOpenTrace }) => 
           >
             {/* Bot Avatar */}
             {!isFarmer && (
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-green-500 flex items-center justify-center flex-shrink-0 shadow-md border border-emerald-400/30">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 via-green-500 to-amber-400 flex items-center justify-center flex-shrink-0 shadow-lg border border-emerald-300/40">
                 <Bot className="w-5 h-5 text-slate-950 font-bold" />
               </div>
             )}
 
             {/* Bubble */}
             <div
-              className={`max-w-xl rounded-2xl p-4 shadow-lg transition-all ${
+              className={`max-w-xl rounded-3xl p-5 shadow-xl transition-all ${
                 isFarmer
-                  ? 'bg-emerald-950/80 border border-emerald-800/80 text-white rounded-tr-none'
-                  : 'bg-slate-900 border border-slate-800 text-slate-100 rounded-tl-none'
+                  ? 'bg-emerald-950/90 border border-emerald-700/80 text-white rounded-tr-none'
+                  : 'bg-slate-900/90 border border-emerald-900/40 text-slate-100 rounded-tl-none backdrop-blur-md'
               }`}
             >
               {/* Header Info */}
               <div className="flex items-center justify-between space-x-3 mb-2 pb-1.5 border-b border-white/10 text-[11px]">
                 <div className="flex items-center space-x-1.5 font-bold">
-                  <span>{isFarmer ? '👨‍🌾 రైతు (రైతు వాయిస్)' : '🌿 RYTHUM AI'}</span>
+                  <span>{isFarmer ? t.farmerVoiceLabel : t.assistantLabel}</span>
                   {msg.detected_language && (
-                    <span className="px-1.5 py-0.2 rounded bg-slate-800 text-slate-300 font-mono text-[10px]">
+                    <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 font-mono text-[10px] border border-slate-700">
                       {msg.detected_language}
                     </span>
                   )}
@@ -89,22 +92,22 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({ messages, onOpenTrace }) => 
               </div>
 
               {/* Message Content */}
-              <div className="text-sm leading-relaxed whitespace-pre-line font-normal">
+              <div className="text-sm leading-relaxed whitespace-pre-line font-normal text-slate-100">
                 {msg.text}
               </div>
 
               {/* Verified Citations Badge */}
               {!isFarmer && msg.sources && msg.sources.length > 0 && (
-                <div className="mt-3 pt-2 border-t border-slate-800/90">
-                  <div className="flex items-center space-x-1 text-[11px] text-emerald-400 font-bold mb-1">
+                <div className="mt-3.5 pt-2.5 border-t border-slate-800/90">
+                  <div className="flex items-center space-x-1 text-[11px] text-emerald-400 font-bold mb-1.5">
                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>పరిశోధన ఆధారిత ధ్రువీకరణ (ICAR / ANGRAU Verified):</span>
+                    <span>{t.verifiedCitationLabel}</span>
                   </div>
                   <div className="flex flex-wrap gap-1.5 mt-1">
                     {msg.sources.map((src, i) => (
                       <span
                         key={i}
-                        className="px-2 py-0.5 rounded-md bg-emerald-950/80 border border-emerald-800/60 text-emerald-300 text-[10px] font-mono"
+                        className="px-2.5 py-0.5 rounded-lg bg-emerald-950/90 border border-emerald-700/70 text-emerald-300 text-[10px] font-mono shadow-sm"
                       >
                         {src.source_organization} • ID: {src.verified_advisory_id}
                       </span>
@@ -115,27 +118,27 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({ messages, onOpenTrace }) => 
 
               {/* Action Toolbar for AI message */}
               {!isFarmer && (
-                <div className="mt-3 pt-2 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2">
+                <div className="mt-3.5 pt-2.5 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2">
                   
                   {/* Voice Playback Button */}
                   {msg.audio_base64 && (
                     <button
                       onClick={() => handlePlayAudio(msg.id, msg.audio_base64)}
-                      className={`flex items-center space-x-1.5 px-3 py-1 rounded-xl text-xs font-bold transition-all ${
+                      className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-md ${
                         playingAudioId === msg.id
                           ? 'bg-rose-600 text-white animate-pulse'
-                          : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-md shadow-emerald-500/20'
+                          : 'bg-gradient-to-r from-emerald-500 to-green-400 hover:from-emerald-400 hover:to-green-300 text-slate-950 shadow-emerald-500/20'
                       }`}
                     >
                       {playingAudioId === msg.id ? (
                         <>
                           <VolumeX className="w-3.5 h-3.5" />
-                          <span>వాయిస్ ఆపండి</span>
+                          <span>{t.stopVoiceBtn}</span>
                         </>
                       ) : (
                         <>
                           <Volume2 className="w-3.5 h-3.5" />
-                          <span>వాయిస్ వినండి (Gnani Timbre)</span>
+                          <span>{t.listenVoiceBtn}</span>
                         </>
                       )}
                     </button>
@@ -145,17 +148,17 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({ messages, onOpenTrace }) => 
                   {msg.agent_trace && msg.agent_trace.length > 0 && (
                     <button
                       onClick={() => onOpenTrace(msg.agent_trace || [], msg.text)}
-                      className="flex items-center space-x-1 text-slate-400 hover:text-emerald-400 text-xs font-semibold px-2 py-1 rounded-lg bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 transition-colors ml-auto"
+                      className="flex items-center space-x-1 text-slate-300 hover:text-emerald-300 text-xs font-semibold px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700/80 border border-slate-700/80 transition-colors ml-auto shadow-sm"
                     >
                       <Sparkles className="w-3 h-3 text-amber-400" />
-                      <span>AI ఆలోచన క్రమం</span>
-                      <ChevronRight className="w-3 h-3 ml-0.5" />
+                      <span>{t.aiTraceBtn}</span>
+                      <ChevronRight className="w-3 h-3 ml-0.5 text-slate-400" />
                     </button>
                   )}
 
                   {/* Telemetry pill */}
                   {msg.telemetry && (
-                    <div className="text-[10px] font-mono text-slate-500 w-full text-right mt-1">
+                    <div className="text-[10px] font-mono text-slate-400 w-full text-right mt-1">
                       Latency: STT {msg.telemetry.latency_stt_ms || 0}ms + Agent {msg.telemetry.latency_agent_ms || 0}ms + TTS {msg.telemetry.latency_tts_ms || 0}ms = <span className="text-emerald-400 font-bold">{msg.telemetry.total_latency_ms}ms</span>
                     </div>
                   )}
@@ -166,7 +169,7 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({ messages, onOpenTrace }) => 
 
             {/* Farmer Avatar */}
             {isFarmer && (
-              <div className="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 rounded-2xl bg-slate-800 border border-emerald-900/40 flex items-center justify-center flex-shrink-0 shadow-md">
                 <User className="w-5 h-5 text-emerald-400" />
               </div>
             )}
@@ -176,4 +179,3 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({ messages, onOpenTrace }) => 
     </div>
   );
 };
-

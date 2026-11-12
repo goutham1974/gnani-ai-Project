@@ -1,5 +1,6 @@
 import React from 'react';
-import { Sparkles, TrendingUp } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
+import { getTranslation } from '../i18n';
 
 interface CropItem {
   id: string;
@@ -199,25 +200,17 @@ export const CropVisualSelector: React.FC<CropVisualSelectorProps> = ({
   disabled
 }) => {
   const lang = selectedLanguage in CROPS[0].name ? selectedLanguage : 'en';
-
-  const titleByLang: Record<string, string> = {
-    te: 'ప్రధాన భారతీయ పంటలు (త్వరిత విశ్లేషణ):',
-    hi: 'प्रमुख भारतीय फसलें (त्वरित विश्लेषण):',
-    kn: 'ಪ್ರಮುಖ ಭಾರತೀಯ ಬೆಳೆಗಳು (ತ್ವರಿತ ಪರಿಶೀಲನೆ):',
-    ta: 'முக்கிய இந்திய பயிர்கள் (விரைவு ஆய்வு):',
-    mr: 'प्रमुख भारतीय पिके (त्वरित सल्ला):',
-    en: 'Major Indian Crops (Instant Diagnostic Assistance):'
-  };
+  const t = getTranslation(selectedLanguage);
 
   return (
     <div className="my-5">
       <div className="flex items-center justify-between mb-2.5">
         <span className="text-xs font-bold text-slate-300 flex items-center space-x-1.5 uppercase tracking-wider">
           <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-          <span>{titleByLang[lang] || titleByLang['en']}</span>
+          <span>{t.cropSelectorTitle}</span>
         </span>
-        <span className="text-[10px] text-emerald-400 font-mono">
-          One-Tap Diagnostic
+        <span className="text-[10px] text-emerald-400 font-mono hidden sm:inline">
+          {t.cropSelectorSubtitle}
         </span>
       </div>
 
