@@ -124,25 +124,47 @@ def router_node(state: FarmerAgentState) -> FarmerAgentState:
     }
 
 # -------------------------------------------------------------
-# Node 2: Greeting & Conversational Agent (Fixed!)
+# Node 2: Greeting & Conversational Agent
 # -------------------------------------------------------------
+GREETINGS_BY_LANG = {
+    "te": (
+        "నమస్కారం రైతు సోదరా! నేను RYTHUM AI — మీ డిజిటల్ వ్యవసాయ సహాయకుడిని 🙏\n\n"
+        "మీ పంటల సమస్యలు, తెగుళ్ల నివారణ, నేటి మార్కెట్ (మండి) ధరలు, వ్యవసాయ వాతావరణం లేదా పనుల రిమైండర్ల గురించి ఏదైనా అడగండి. నేను మీకు సహాయం చేయడానికి సిద్ధంగా ఉన్నాను!"
+    ),
+    "hi": (
+        "नमस्ते किसान भाई! मैं RYTHUM AI हूँ — आपका डिजिटल कृषि सहायक 🙏\n\n"
+        "अपनी फसल की समस्या, कीट नियंत्रण, ताज़ा मंडी भाव, मौसम पूर्वानुमान या खेती के कामों के बारे में पूछें। मैं आपकी सहायता के लिए तैयार हूँ!"
+    ),
+    "kn": (
+        "ನಮಸ್ಕಾರ ರೈತ ಮಿತ್ರರೇ! ನಾನು RYTHUM AI — ನಿಮ್ಮ ಡಿಜಿಟಲ್ ಕೃಷಿ ಸಹಾಯಕ 🙏\n\n"
+        "ನಿಮ್ಮ ಬೆಳೆ ಸಮಸ್ಯೆಗಳು, ಕೀಟ ನಿಯಂತ್ರಣ, ಇಂದಿನ ಮಾರುಕಟ್ಟೆ ದರಗಳು ಅಥವಾ ಹವಾಮಾನದ ಬಗ್ಗೆ ಯಾವುದೇ ಪ್ರಶ್ನೆಯನ್ನು ಕೇಳಿ. ನಾನು ನಿಮಗೆ ಸಹಾಯ ಮಾಡಲು ಸಿದ್ಧನಿದ್ದೇನೆ!"
+    ),
+    "ta": (
+        "வணக்கம் விவசாய தோழரே! நான் RYTHUM AI — உங்கள் டிஜிட்டல் வேளாண்மை உதவியாளர் 🙏\n\n"
+        "உங்கள் பயிர் பிரச்சனைகள், பூச்சி கட்டுப்பாடு, சந்தை விலைகள் அல்லது வானிலை பற்றி கேளுங்கள். உங்களுக்கு உதவ நான் தயாராக உள்ளேன்!"
+    ),
+    "mr": (
+        "नमस्कार शेतकरी बंधू! मी RYTHUM AI आहे — आपला डिजिटल शेती सहाय्यक 🙏\n\n"
+        "आपल्या पिकांच्या समस्या, कीड नियंत्रण, आजचे बाजारभाव किंवा हवामानाविषयी विचारा. मी आपल्या मदतीसाठी सदैव तयार आहे!"
+    ),
+    "en": (
+        "Hello farmer friend! I am RYTHUM AI — your Autonomous Agricultural Operating Assistant 🙏\n\n"
+        "How can I help your farm today? You can speak or type any question about crop health, pest remedies, live APMC mandi prices, spraying weather, or schedule farm reminders."
+    )
+}
+
 def greeting_agent_node(state: FarmerAgentState) -> FarmerAgentState:
     query = state["user_query"]
     lang = state.get("detected_language", "te")[:2].lower()
     traces = list(state.get("agent_trace", []))
 
-    # Invoke LLM service for warm greeting
-    llm_res = llm_service.generate_response_sync(
-        prompt=f"The user says: '{query}'. Respond warmly as RYTHUM AI, introduce your farming capabilities, and ask how you can help their farm.",
-        target_language=lang
-    )
-
-    response_text = llm_res.get("text", "")
+    # Instant warm, courteous greeting in farmer's chosen native language
+    response_text = GREETINGS_BY_LANG.get(lang, GREETINGS_BY_LANG["en"])
 
     traces.append({
         "agent": "Greeting & Conversational Agent",
-        "action": "Cordial Farmer Greeting Generated",
-        "detail": f"Generated welcoming response in [{lang}] via {llm_res.get('model', 'LLM')}",
+        "action": "Warm Farmer Greeting Delivered",
+        "detail": f"Delivered cordial welcome in [{lang}]",
         "timestamp_ms": round(time.time() * 1000, 2)
     })
 
@@ -164,19 +186,18 @@ def agri_advisor_agent_node(state: FarmerAgentState) -> FarmerAgentState:
     crop = state.get("crop_identified")
     traces = list(state.get("agent_trace", []))
 
-    prompt = (
-        f"You are RYTHUM AI, an intelligent multilingual agricultural operating system assistant for Indian farmers.\n"
-        f"Farmer's query: '{query}'\n\n"
-        f"Provide a direct, thorough, practical, and empathetic answer in native script for language code '{lang}'.\n"
-        f"Requirements:\n"
-        f"1. Directly answer what the farmer asked without evading or giving a generic self-introduction.\n"
-        f"2. If it is about crops, pests, soil, fertilizers, seeds, water, or government schemes, give specific names, step-by-step instructions, and scientific advice.\n"
-        f"3. If it is a general knowledge question or conversational query, answer it accurately, respectfully, and helpfully.\n"
-        f"4. Keep the language natural, respectful, and easy for an Indian farmer to understand.\n"
-        f"5. Mention Kisan Call Center toll-free 1800-180-1551 at the end for localized agronomic support."
+    sys_prompt = (
+        f"You are RYTHUM AI, an intelligent multilingual agricultural operating system assistant for Indian farmers. "
+        f"Directly and clearly answer the farmer's question in their native language script. "
+        f"If the question is about crops, diseases, pests, fertilizers, soil, water, or farm management, give specific actionable advice with exact dosages (e.g. ml or grams per liter of water). "
+        f"If it is a general conversational question, answer respectfully, helpfully, and concisely."
     )
 
-    llm_res = llm_service.generate_response_sync(prompt, target_language=lang)
+    llm_res = llm_service.generate_response_sync(
+        prompt=query,
+        system_instruction=sys_prompt,
+        target_language=lang
+    )
     response_text = llm_res.get("text", "")
 
     traces.append({
@@ -241,7 +262,7 @@ def crop_agent_node(state: FarmerAgentState) -> FarmerAgentState:
         )
 
         llm_res = llm_service.generate_response_sync(prompt, target_language=lang)
-        if llm_res.get("text"):
+        if llm_res.get("text") and "Google Gemini" in llm_res.get("model", ""):
             response_text = llm_res["text"]
         else:
             if lang == "te":
@@ -270,7 +291,8 @@ def crop_agent_node(state: FarmerAgentState) -> FarmerAgentState:
     else:
         # LLM reasoning for non-corpus crop queries
         llm_res = llm_service.generate_response_sync(
-            prompt=f"Farmer query: '{query}'. Provide verified agricultural disease, nutrient, or agronomic management advice with specific dosages.",
+            prompt=query,
+            system_instruction="Provide verified agricultural disease, nutrient, or agronomic management advice with specific dosages.",
             target_language=lang
         )
         response_text = llm_res.get("text", "")
@@ -329,7 +351,7 @@ def market_agent_node(state: FarmerAgentState) -> FarmerAgentState:
         )
 
         llm_res = llm_service.generate_response_sync(prompt, target_language=lang)
-        if llm_res.get("text"):
+        if llm_res.get("text") and "Google Gemini" in llm_res.get("model", ""):
             response_text = llm_res["text"]
         else:
             if lang == "te":
@@ -412,7 +434,7 @@ def weather_agent_node(state: FarmerAgentState) -> FarmerAgentState:
     )
 
     llm_res = llm_service.generate_response_sync(prompt, target_language=lang)
-    if llm_res.get("text"):
+    if llm_res.get("text") and "Google Gemini" in llm_res.get("model", ""):
         response_text = llm_res["text"]
     else:
         if lang == "te":

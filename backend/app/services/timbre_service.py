@@ -22,7 +22,7 @@ LANG_MAP = {
     "en": "english"
 }
 
-def clean_text_for_speech(raw_text: str, max_chars: int = 240) -> str:
+def clean_text_for_speech(raw_text: str, max_chars: int = 160) -> str:
     """
     Cleans markdown formatting, emojis, and symbols so TTS produces crisp, natural speech
     without reciting asterisks, hashes, or bullet points. Truncates to first 1-2 key sentences.
@@ -41,7 +41,7 @@ def clean_text_for_speech(raw_text: str, max_chars: int = 240) -> str:
     if len(cleaned) > max_chars:
         segment = cleaned[:max_chars]
         last_punct = max(segment.rfind('.'), segment.rfind('!'), segment.rfind('?'), segment.rfind('।'))
-        if last_punct > 80:
+        if last_punct > 60:
             cleaned = segment[:last_punct + 1]
         else:
             cleaned = segment + "..."
@@ -92,7 +92,7 @@ class GnaniTimbreTTSService:
                     "speed": speed
                 }
 
-                timeout_cfg = httpx.Timeout(20.0, connect=10.0)
+                timeout_cfg = httpx.Timeout(4.5, connect=2.0)
                 async with httpx.AsyncClient(timeout=timeout_cfg) as client:
                     response = await client.post(
                         self.endpoint,

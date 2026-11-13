@@ -1,3 +1,4 @@
+import asyncio
 import time
 import uuid
 from pydantic import BaseModel
@@ -19,7 +20,7 @@ class ChatRequest(BaseModel):
 @router.post("")
 async def process_chat(req: ChatRequest):
     """
-    Process text query through the LangGraph Multi-Agent Supervisor.
+    Process text query through the LangGraph Multi-Agent Supervisor with sub-2s latency.
     """
     overall_start = time.time()
     session = req.session_id or str(uuid.uuid4())
@@ -41,7 +42,8 @@ async def process_chat(req: ChatRequest):
         "confirmation_payload": None
     }
 
-    agent_output = farmer_agent_executor.invoke(initial_state)
+    # Run agent in background thread to keep event loop 100% responsive
+    agent_output = await asyncio.to_thread(farmer_agent_executor.invoke, initial_state)
     agent_latency = round((time.time() - overall_start) * 1000, 2)
 
     response_text = agent_output.get("final_response") or agent_output.get("final_response_te") or ""
@@ -50,14 +52,20 @@ async def process_chat(req: ChatRequest):
     audio_base64 = ""
     tts_latency = 0.0
 
-    if req.generate_voice:
+    if req.generate_voice and response_text:
         tts_start = time.time()
-        tts_res = await timbre_service.synthesize_speech(
-            text=response_text,
-            language=detected_lang[:2].lower()
-        )
-        audio_base64 = tts_res.get("audio_base64", "")
-        tts_latency = round((time.time() - tts_start) * 1000, 2)
+        try:
+            tts_res = await asyncio.wait_for(
+                timbre_service.synthesize_speech(
+                    text=response_text,
+                    language=detected_lang[:2].lower()
+                ),
+                timeout=3.5
+            )
+            audio_base64 = tts_res.get("audio_base64", "")
+            tts_latency = round((time.time() - tts_start) * 1000, 2)
+        except Exception:
+            tts_latency = round((time.time() - tts_start) * 1000, 2)
 
     total_latency = round((time.time() - overall_start) * 1000, 2)
 

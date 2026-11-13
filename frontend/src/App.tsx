@@ -151,14 +151,14 @@ export function App() {
     }
   };
 
-  // Handle voice submission with live speech transcript support
+  // Handle voice submission with zero-loss live speech transcript support
   const handleAudioReady = async (audioBlob: Blob, liveTranscript?: string) => {
     setIsProcessing(true);
     const userMsgId = 'user_' + Date.now();
     const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
     const recognizedText = (liveTranscript || textInput || '').trim() || t.farmerVoiceLabel;
-    setTextInput(recognizedText);
+    setTextInput('');
 
     const farmerMsg: ChatMessage = {
       id: userMsgId,
@@ -216,8 +216,9 @@ export function App() {
 
   // Handle prompt or crop click
   const handleSelectPrompt = async (promptText: string) => {
+    if (!promptText.trim() || isProcessing) return;
     setIsProcessing(true);
-    setTextInput(promptText);
+    setTextInput('');
     const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
     const farmerMsgId = 'user_' + Date.now();
@@ -229,19 +230,6 @@ export function App() {
       timestamp: timeStr,
     };
     setMessages((prev) => [...prev, farmerMsg]);
-
-    // Synthesize user question voice in parallel via Gnani Timbre TTS
-    api.synthesizeSpeech(promptText, selectedLanguage).then((res) => {
-      if (res && res.audio_base64) {
-        setMessages((prev) =>
-          prev.map((m) => (m.id === farmerMsgId ? { ...m, audio_base64: res.audio_base64 } : m))
-        );
-        // If auto-play is on, queue the user's spoken question
-        if (autoPlayVoice) {
-          queueAudioString(res.audio_base64);
-        }
-      }
-    }).catch(err => console.warn('User question TTS prefetch error:', err));
 
     try {
       const res = await api.sendChatMessage(promptText, selectedLanguage);
@@ -262,7 +250,7 @@ export function App() {
       if (res.audio_base64) {
         setLatestAiAudio(res.audio_base64);
         if (autoPlayVoice) {
-          queueAudioString(res.audio_base64);
+          playAudioString(res.audio_base64);
         }
       }
 

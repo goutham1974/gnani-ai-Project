@@ -89,18 +89,30 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
         recognition.lang = SPEECH_RECOGNITION_LANG[selectedLanguage] || 'te-IN';
 
         recognition.onresult = (event: any) => {
-          let interim = '';
-          for (let i = event.resultIndex; i < event.results.length; ++i) {
-            interim += event.results[i][0].transcript;
+          let finalAccumulated = '';
+          let interimAccumulated = '';
+
+          // Accumulate ALL speech chunks from index 0 so words are NEVER lost or truncated
+          for (let i = 0; i < event.results.length; ++i) {
+            const res = event.results[i];
+            if (res && res[0]) {
+              if (res.isFinal) {
+                finalAccumulated += res[0].transcript + ' ';
+              } else {
+                interimAccumulated += res[0].transcript;
+              }
+            }
           }
-          if (interim) {
-            setLiveTranscript(interim);
-            liveTranscriptRef.current = interim;
+
+          const completeTranscript = (finalAccumulated + interimAccumulated).trim();
+          if (completeTranscript) {
+            setLiveTranscript(completeTranscript);
+            liveTranscriptRef.current = completeTranscript;
             if (onLiveSpeech) {
-              onLiveSpeech(interim);
+              onLiveSpeech(completeTranscript);
             }
 
-            // Auto-submit after 2.2 seconds of silence after speaking
+            // Auto-submit after 3.5 seconds of silence (allows natural pauses between farmer sentences)
             if (silenceTimerRef.current) {
               clearTimeout(silenceTimerRef.current);
             }
@@ -108,17 +120,18 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
               if (liveTranscriptRef.current && liveTranscriptRef.current.trim().length > 2) {
                 stopRecording();
               }
-            }, 2200);
+            }, 3500);
           }
         };
 
         recognition.onspeechend = () => {
+          // Keep a relaxed 3.2s silence buffer so natural farmer breathing does not cut sentence
           if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
           silenceTimerRef.current = setTimeout(() => {
             if (liveTranscriptRef.current && liveTranscriptRef.current.trim().length > 2) {
               stopRecording();
             }
-          }, 1600);
+          }, 3200);
         };
 
         recognition.onerror = (err: any) => {
