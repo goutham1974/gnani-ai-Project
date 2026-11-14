@@ -14,6 +14,8 @@
 > [!IMPORTANT]
 > **Core Speech Engine Powered by Gnani.ai Platform APIs:**  
 > RYTHUM AI integrates **Gnani Prisma v3.0** for robust, real-time Indic Speech-to-Text (STT) and **Gnani Timbre v3.0** for high-fidelity Indic Text-to-Speech (TTS) synthesis across 6 Indian languages. Both models are powered directly by the **`GNANI_API_KEY`** connected through Gnani's enterprise speech infrastructure (`https://api.vachana.ai`).
+> 
+> 📄 **Hackathon Executive Pitch:** View the [1-Page Solution Pitch Document](SOLUTION_PITCH.md).
 
 ---
 
