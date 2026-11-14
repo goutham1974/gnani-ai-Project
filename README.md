@@ -162,7 +162,7 @@ Add the key into your root `.env` file:
 
 ```ini
 # Gnani.ai Speech Platform Credentials
-GNANI_API_KEY=vach_1ytE2CY5X2DiHccfV6mLDIEVVsEXyABMnnukIc5jsAcjhbYqXJTGwrGDDjKhAnGMRyxx6zxKRO3akFQOgamwtNElvJh7G4gh_e6a09b16ae750088288e2e328cc434cb
+GNANI_API_KEY="CONFIDENTIAL"
 GNANI_BASE_URL=https://api.vachana.ai
 
 # Gnani Prisma (STT) Settings
