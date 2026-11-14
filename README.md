@@ -2,12 +2,18 @@
 ### Autonomous Multilingual AI Operating System for Indian Farmers
 **Tagline:** *Your Voice. Your Language. Your Digital Farming Assistant.*
 
-[![Gnani AI](https://img.shields.io/badge/Powered%20By-Gnani.ai-10b981.svg?style=for-the-badge&logo=probot)](https://gnani.ai)
+[![Gnani AI](https://img.shields.io/badge/Powered%20By-Gnani.ai%20Speech%20Platform-10b981.svg?style=for-the-badge&logo=probot)](https://gnani.ai)
+[![Gnani Prisma](https://img.shields.io/badge/STT-Gnani%20Prisma%20v3.0-0ea5e9.svg?style=for-the-badge)](https://app.gnani.ai/)
+[![Gnani Timbre](https://img.shields.io/badge/TTS-Gnani%20Timbre%20v3.0-8b5cf6.svg?style=for-the-badge)](https://app.gnani.ai/)
 [![Google Gemini](https://img.shields.io/badge/Reasoning-Google%20Gemini-4285f4.svg?style=for-the-badge&logo=google)](https://ai.google.dev/)
 [![LangGraph](https://img.shields.io/badge/Orchestrator-LangGraph%20Multi--Agent-f59e0b.svg?style=for-the-badge)](https://github.com/langchain-ai/langgraph)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688.svg?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com)
 [![React Vite](https://img.shields.io/badge/Frontend-React%20%2B%20TypeScript%20%2B%20Vite-61dafb.svg?style=for-the-badge&logo=react)](https://vitejs.dev)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
+
+> [!IMPORTANT]
+> **Core Speech Engine Powered by Gnani.ai Platform APIs:**  
+> RYTHUM AI integrates **Gnani Prisma v3.0** for robust, real-time Indic Speech-to-Text (STT) and **Gnani Timbre v3.0** for high-fidelity Indic Text-to-Speech (TTS) synthesis across 6 Indian languages. Both models are powered directly by the **`GNANI_API_KEY`** connected through Gnani's enterprise speech infrastructure (`https://api.vachana.ai`).
 
 ---
 
@@ -15,17 +21,19 @@
 1. [Overview & Core Vision](#-1-overview--core-vision)
 2. [Seven Core Capabilities](#-2-seven-core-capabilities)
 3. [End-to-End Technical Architecture](#-3-end-to-end-technical-architecture)
-4. [Multilingual Agentic Voice Workflow](#-4-multilingual-agentic-voice-workflow)
-5. [The 6 Supported Indian Languages](#-5-the-6-supported-indian-languages)
-6. [Multi-Agent System & Supervisor Routing](#-6-multi-agent-system--supervisor-routing)
-7. [Agricultural Knowledge Base & Evidence Grounding](#-7-agricultural-knowledge-base--evidence-grounding)
-8. [Noisy Audio Benchmark Studio](#-8-noisy-audio-benchmark-studio)
-9. [Project Directory Structure](#-9-project-directory-structure)
-10. [Configuration & Environment Variables](#-10-configuration--environment-variables)
-11. [Installation & Execution Guide](#-11-installation--execution-guide)
-12. [API Reference & Endpoints](#-12-api-reference--endpoints)
-13. [Performance Benchmarks](#-13-performance-benchmarks)
-14. [Hackathon Submission Details](#-14-hackathon-submission-details)
+4. [Gnani.ai Speech Platform Integration (Prisma STT & Timbre TTS)](#-4-gnanai-speech-platform-integration-prisma-stt--timbre-tts)
+5. [GNANI API Key Setup & Authentication](#-5-gnani-api-key-setup--authentication)
+6. [Multilingual Agentic Voice Workflow](#-6-multilingual-agentic-voice-workflow)
+7. [The 6 Supported Indian Languages](#-7-the-6-supported-indian-languages)
+8. [Multi-Agent System & Supervisor Routing](#-8-multi-agent-system--supervisor-routing)
+9. [Agricultural Knowledge Base & Evidence Grounding](#-9-agricultural-knowledge-base--evidence-grounding)
+10. [Noisy Audio Benchmark Studio](#-10-noisy-audio-benchmark-studio)
+11. [Project Directory Structure](#-11-project-directory-structure)
+12. [Configuration & Environment Variables](#-12-configuration--environment-variables)
+13. [Installation & Execution Guide](#-13-installation--execution-guide)
+14. [API Reference & Endpoints](#-14-api-reference--endpoints)
+15. [Performance Benchmarks](#-15-performance-benchmarks)
+16. [Hackathon Submission Details](#-16-hackathon-submission-details)
 
 ---
 
@@ -87,14 +95,108 @@ flowchart TD
     M --> N["👂 Farmer Hears Native Spoken Answer + Reads Screen"]
 ```
 
-### Architectural Highlights
-- **Decoupled Text & Voice Pipelines:** The text response renders in the UI immediately (< 2.5s) while voice synthesis completes in parallel, avoiding interface freezes.
-- **24kHz RIFF WAV Synthesis:** Resolves browser playback issues by wrapping Gnani Timbre's raw mono PCM bytes into compliant RIFF audio headers.
-- **Connection-Pooled HTTP/2 Client:** Persistent connection pooling eliminates TLS handshake overhead on every query.
+---
+
+## 🎙️ 4. Gnani.ai Speech Platform Integration (Prisma STT & Timbre TTS)
+
+RYTHUM AI implements **Gnani.ai's state-of-the-art conversational voice platform** as its primary speech recognition and speech synthesis foundation:
+
+```
++-----------------------------------------------------------------------------------------+
+|                               GNANI.AI SPEECH PLATFORM                                  |
+|                                                                                         |
+|   +---------------------------------------+   +-------------------------------------+   |
+|   |         GNANI PRISMA (STT v3.0)       |   |       GNANI TIMBRE (TTS v3.0)       |   |
+|   |   • Acoustic Model: prisma-v3.0       |   |   • Voice Model: timbre-v3.0        |   |
+|   |   • Endpoint: /stt/v3                 |   |   • Endpoint: /api/v1/tts/inference |   |
+|   |   • Indic Streaming & Code-Mix        |   |   • 24,000 Hz 16-bit Mono Audio     |   |
+|   |   • Noise-Tolerant Acoustic Filter    |   |   • Voices: Lakshmi, Avinash, etc.  |   |
+|   +---------------------------------------+   +-------------------------------------+   |
+|                                       ▲                           ▲                     |
+|                                       │                           │                     |
+|                                       +-------------+-------------+                     |
+|                                                     │                                   |
+|                                       AUTHENTICATION HEADER                             |
+|                                    X-API-Key-ID: ${GNANI_API_KEY}                       |
++-----------------------------------------------------------------------------------------+
+```
+
+### 1. Gnani Prisma STT (Speech-to-Text)
+- **Role:** Converts incoming farmer voice recordings (WAV/PCM) into accurate text transcripts.
+- **Service File:** [`backend/app/services/prisma_service.py`](file:///d:/Goutham/Projects/FARMER%20AI/backend/app/services/prisma_service.py)
+- **Endpoint:** `POST https://api.vachana.ai/stt/v3`
+- **Supported Languages:** Telugu (`te-IN`), Hindi (`hi-IN`), Kannada (`kn-IN`), Tamil (`ta-IN`), Marathi (`mr-IN`), English (`en-IN`), and Auto-Detection (`indic-auto`).
+- **Code-Mixing Support:** Seamlessly decodes natural bilingual patterns like *"Anna, tomato crop lo aakulu yellow ga marutunnayi, what to do?"*
+- **Noise Resilience:** Tested against high acoustic noise profiles (10 dB SNR tractor diesel engines, borewell motor hum, and 35 km/h field wind).
+
+### 2. Gnani Timbre TTS (Text-to-Speech)
+- **Role:** Synthesizes compassionate, human-sounding speech in regional Indian languages so farmers can listen rather than read.
+- **Service File:** [`backend/app/services/timbre_service.py`](file:///d:/Goutham/Projects/FARMER%20AI/backend/app/services/timbre_service.py)
+- **Endpoint:** `POST https://api.vachana.ai/api/v1/tts/inference`
+- **Model:** `timbre-v3.0`
+- **Voice Personas Implemented:**
+  - **Telugu:** `Lakshmi` (Warm agricultural persona) / `Avinash`
+  - **Hindi:** `Lakshmi` / `Shubham`
+  - **Kannada:** `Lakshmi` / `Kalpana`
+  - **Tamil:** `Lakshmi` / `Prakash`
+  - **Marathi:** `Lakshmi` / `Devansh`
+  - **English:** `Lakshmi` / `Yashraj`
+- **Acoustic Engineering (24kHz RIFF WAV Header Wrapping):**
+  Gnani Timbre outputs raw 24,000 Hz, 16-bit mono PCM bytes (`x-audio-container: raw`). To guarantee immediate playback across all modern mobile browsers and web standards without decoding errors, our backend dynamically wraps the raw PCM in a standard 44-byte RIFF WAV header before transmission.
+- **Smart Markdown Text Cleaning:**
+  Before sending text to Timbre, the engine strips asterisks, hashes, bullet points, and emojis so the synthesized voice reads naturally without reciting symbols.
 
 ---
 
-## 🔄 4. Multilingual Agentic Voice Workflow
+## 🔑 5. GNANI API Key Setup & Authentication
+
+The Gnani.ai platform API key is the master authentication key for both Prisma STT and Timbre TTS:
+
+### Where to Obtain Your Gnani API Key
+1. Sign in to the **Gnani Speech Cloud Console**: [https://app.gnani.ai/](https://app.gnani.ai/)
+2. Navigate to **API Keys** and generate a new key.
+3. Your key format will resemble: `vach_1ytE2CY5X2DiHccfV6mLDIE...`
+
+### Configuring the Key in RYTHUM AI
+Add the key into your root `.env` file:
+
+```ini
+# Gnani.ai Speech Platform Credentials
+GNANI_API_KEY=vach_1ytE2CY5X2DiHccfV6mLDIEVVsEXyABMnnukIc5jsAcjhbYqXJTGwrGDDjKhAnGMRyxx6zxKRO3akFQOgamwtNElvJh7G4gh_e6a09b16ae750088288e2e328cc434cb
+GNANI_BASE_URL=https://api.vachana.ai
+
+# Gnani Prisma (STT) Settings
+GNANI_STT_MODEL=prisma-v3.0
+GNANI_STT_ENDPOINT=https://api.vachana.ai/stt/v3
+
+# Gnani Timbre (TTS) Settings
+GNANI_TTS_MODEL=timbre-v3.0
+GNANI_TTS_ENDPOINT=https://api.vachana.ai/api/v1/tts/inference
+
+# Voice mapping across Indian languages
+GNANI_DEFAULT_VOICE_TELUGU=Lakshmi
+GNANI_DEFAULT_VOICE_HINDI=Lakshmi
+GNANI_DEFAULT_VOICE_KANNADA=Lakshmi
+GNANI_DEFAULT_VOICE_TAMIL=Lakshmi
+GNANI_DEFAULT_VOICE_MARATHI=Lakshmi
+GNANI_DEFAULT_VOICE_ENGLISH=Lakshmi
+```
+
+### How the Key is Authenticated Internally
+Every HTTP request to Gnani's speech servers sends the API key in the custom header:
+```python
+headers = {
+    "X-API-Key-ID": settings.GNANI_API_KEY,
+    "Content-Type": "application/json",
+    "User-Agent": "RYTHUM-AI/1.0"
+}
+```
+
+*Intelligent Dev Fallback:* If no `GNANI_API_KEY` is provided or in local test mode, RYTHUM AI gracefully switches to an internal developer emulation mode so evaluators can test the multi-agent UI, database, and telemetry seamlessly without API dependencies.
+
+---
+
+## 🔄 6. Multilingual Agentic Voice Workflow
 
 ```
 [Farmer Speaks] 
@@ -117,11 +219,11 @@ The farmer can interrupt the agent, modify dates, change languages midway, or re
 
 ---
 
-## 🌐 5. The 6 Supported Indian Languages
+## 🌐 7. The 6 Supported Indian Languages
 
 RYTHUM AI provides full UI localization, voice recording, live transcript display, LLM reasoning, and text-to-speech across **6 Indian languages**:
 
-| Language | Native Script | Voice Persona | Sample Farmer Question |
+| Language | Native Script | Timbre Voice Persona | Sample Farmer Question |
 | :--- | :--- | :--- | :--- |
 | **Telugu** | తెలుగు | Lakshmi / Avinash | *"నా టమాటా పంటకు ఆకులు పసుపు రంగులోకి మారుతున్నాయి, ఏం చేయాలి?"* |
 | **Hindi** | हिंदी | Lakshmi / Shubham | *"मेरे टमाटर के पौधे की पत्तियाँ पीली पड़ रही हैं, क्या समाधान है?"* |
@@ -134,15 +236,14 @@ RYTHUM AI provides full UI localization, voice recording, live transcript displa
 
 ---
 
-## 🤖 6. Multi-Agent System & Supervisor Routing
+## 🤖 8. Multi-Agent System & Supervisor Routing
 
-The backend orchestrates five specialized agents managed by a master **LangGraph Supervisor**:
+The backend orchestrates specialized nodes managed by a master **LangGraph Supervisor**:
 
 1. **Supervisor Router (`router_node`)**:
-   - Classifies incoming queries into `greeting`, `crop_diagnosis`, `market_rates`, `weather_forecast`, `reminder`, or `general_advisor`.
-   - Inspects language script and terminology to route to the optimal model.
+   - Classifies queries into `greeting`, `crop_diagnosis`, `market_rates`, `weather_forecast`, `reminder`, or `general_advisor`.
 2. **Greeting Node (`greeting_agent_node`)**:
-   - Ultra-fast localized greetings in **under 400 ms** with zero LLM timeout risk.
+   - Instant localized greetings in **under 400 ms** with zero LLM timeout risk.
 3. **Crop Intelligence Agent (`crop_agent_node`)**:
    - Cross-references query against ANGRAU/ICAR verified advisories for exact pathogen identification, chemical names, and spray ratios.
 4. **Market Intelligence Agent (`market_agent_node`)**:
@@ -156,7 +257,7 @@ The backend orchestrates five specialized agents managed by a master **LangGraph
 
 ---
 
-## 📚 7. Agricultural Knowledge Base & Evidence Grounding
+## 📚 9. Agricultural Knowledge Base & Evidence Grounding
 
 The system features curated agricultural research data sourced from:
 - **Acharya N.G. Ranga Agricultural University (ANGRAU)**
@@ -173,7 +274,7 @@ The system features curated agricultural research data sourced from:
 
 ---
 
-## 🎧 8. Noisy Audio Benchmark Studio
+## 🎧 10. Noisy Audio Benchmark Studio
 
 Farmers often use their mobile phones next to active diesel tractors, irrigation pumps, or in gusty winds. RYTHUM AI includes an **Acoustic Noise Benchmarking Studio** directly inside the UI:
 
@@ -187,7 +288,7 @@ Farmers often use their mobile phones next to active diesel tractors, irrigation
 
 ---
 
-## 📁 9. Project Directory Structure
+## 📁 11. Project Directory Structure
 
 ```
 FARMER AI/
@@ -195,13 +296,13 @@ FARMER AI/
 │   ├── app/
 │   │   ├── main.py                     # FastAPI Application Entry & CORS Setup
 │   │   ├── core/
-│   │   │   └── config.py               # Pydantic Settings & Environment Variables
+│   │   │   └── config.py               # Pydantic Settings & GNANI_API_KEY loading
 │   │   ├── database/
 │   │   │   ├── db.py                   # SQLAlchemy Engine & SQLite Session
 │   │   │   └── models.py               # Reminder, FarmActivity, ConversationLog models
 │   │   ├── services/
-│   │   │   ├── prisma_service.py       # Gnani Prisma STT (Speech-to-Text)
-│   │   │   ├── timbre_service.py       # Gnani Timbre TTS (Text-to-Speech + WAV header wrapping)
+│   │   │   ├── prisma_service.py       # Gnani Prisma STT (Speech-to-Text integration)
+│   │   │   ├── timbre_service.py       # Gnani Timbre TTS (Text-to-Speech + WAV headers)
 │   │   │   ├── llm_service.py          # Google Gemini 2.5/Flash-Lite & Fast Fallback
 │   │   │   ├── market_service.py       # APMC Mandi Market Prices Provider
 │   │   │   ├── weather_service.py      # Weather Forecast & Spray Index
@@ -254,7 +355,7 @@ FARMER AI/
 
 ---
 
-## ⚙️ 10. Configuration & Environment Variables
+## ⚙️ 12. Configuration & Environment Variables
 
 Create a `.env` file in the project root by copying `.env.example`:
 
@@ -301,11 +402,9 @@ CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,http://localhost:8000,h
 DEBUG=true
 ```
 
-*(Note: If no API keys are provided, RYTHUM AI operates in an intelligent native emulation mode with sub-millisecond local responses so all UI components, audio tests, and agents can be evaluated).*
-
 ---
 
-## 🚀 11. Installation & Execution Guide
+## 🚀 13. Installation & Execution Guide
 
 ### Prerequisites
 - **Python**: Version 3.11 or 3.12 installed
@@ -355,13 +454,13 @@ npm run dev
 
 ---
 
-## 📡 12. API Reference & Endpoints
+## 📡 14. API Reference & Endpoints
 
 | Method | Endpoint | Description | Payload / Parameters |
 | :--- | :--- | :--- | :--- |
-| `POST` | `/api/voice/interact` | End-to-end voice pipeline (STT -> LangGraph -> TTS) | `audio_file`, `preferred_language`, `hint_text` |
-| `POST` | `/api/voice/stt` | Transcribe speech using Gnani Prisma STT | `audio_file`, `language_code` |
-| `POST` | `/api/voice/tts` | Synthesize speech using Gnani Timbre TTS | `text`, `language`, `voice` |
+| `POST` | `/api/voice/interact` | End-to-end voice pipeline (**Prisma STT** -> LangGraph -> **Timbre TTS**) | `audio_file`, `preferred_language`, `hint_text` |
+| `POST` | `/api/voice/stt` | Transcribe speech using **Gnani Prisma STT** | `audio_file`, `language_code` |
+| `POST` | `/api/voice/tts` | Synthesize speech using **Gnani Timbre TTS** | `text`, `language`, `voice` |
 | `POST` | `/api/chat` | Text multi-agent reasoning with optional TTS | `{ "message": str, "language_hint": str, "generate_voice": bool }` |
 | `GET` | `/api/farming/mandi-rates` | Live APMC Mandi rates and trends | Query params: `crop`, `state` |
 | `GET` | `/api/farming/weather` | Agri-weather and Spray Safety Index | Query param: `region` |
@@ -373,7 +472,7 @@ npm run dev
 
 ---
 
-## 📊 13. Performance Benchmarks
+## 📊 15. Performance Benchmarks
 
 | Metric | Target | Achieved by RYTHUM AI |
 | :--- | :---: | :---: |
@@ -386,12 +485,12 @@ npm run dev
 
 ---
 
-## 🏆 14. Hackathon Submission Details
+## 🏆 16. Hackathon Submission Details
 
 - **Event:** Great Indian AI Internship Challenge 2026
 - **Organization:** Gnani.ai
 - **Project Name:** RYTHUM AI (రైతుమ్ AI)
-- **Primary Focus:** Autonomous Multilingual AI Operating System for Indian Agriculture
+- **Primary Focus:** Autonomous Multilingual AI Operating System for Indian Agriculture powered by Gnani.ai Voice Tech
 - **Submission Date:** November 2026
 - **Lead Developer:** Goutham & Team
 - **GitHub Repository:** [https://github.com/goutham1974/gnani-ai-Project](https://github.com/goutham1974/gnani-ai-Project)
